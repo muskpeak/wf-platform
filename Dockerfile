@@ -9,7 +9,7 @@ RUN apk update && apk add --no-cache libc6-compat
 
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9 --activate
-RUN pnpm add -g turbo
+RUN npm install -g turbo
 
 COPY . .
 # 使用 turbo 将 web 的依赖子集修剪出来，提取到 /app/out
