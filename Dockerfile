@@ -35,6 +35,7 @@ RUN pnpm install --frozen-lockfile
 # ==========================================
 # 复制完整源码并编译
 COPY --from=builder /app/out/full/ .
+COPY locales ./locales
 COPY turbo.json turbo.json
 
 # 构建 web，禁用遥测
