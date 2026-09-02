@@ -1,0 +1,7 @@
+{
+  "name": "@wf-platform/utils",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {}
+}
