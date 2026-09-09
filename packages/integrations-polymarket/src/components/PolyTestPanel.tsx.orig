@@ -1,0 +1,166 @@
+import React, { useState, useEffect } from "react";
+import { Side } from "@polymarket/clob-client-v2";
+import { usePolyMarket } from "../hooks/usePolyMarket";
+import { EnablePolyModal } from "./EnablePolyModal";
+
+interface PolyTestPanelProps {
+  sessionClient: any;
+  kernelClient: any;
+  eoaClient: any;
+  aaAddress: string | null;
+  rpcUrl?: string;
+}
+
+export function PolyTestPanel({ sessionClient, kernelClient, eoaClient, aaAddress, rpcUrl }: PolyTestPanelProps) {
+  const { approveUSDC, mintTestUSDC, placeOrder, redeemPositions, isProcessing, polyLogs } = usePolyMarket(sessionClient, kernelClient, eoaClient, aaAddress || "", rpcUrl);
+  const [yesTokenId, setYesTokenId] = useState("66951974868755536802605304757583372168819477349215235281202455864461569364803");
+  const [noTokenId, setNoTokenId] = useState("108288520967481090326334935894441255188741468707258754496665003135656838378396");
+  const [conditionId, setConditionId] = useState("0x8bc319bd18f2b477e254b5be60f52ccf24a8fe955b950d0746533edfa710cc1f");
+  const [marketTitle, setMarketTitle] = useState("Bitcoin Up or Down on September 7?");
+  
+  // User Inputs
+  const [price, setPrice] = useState("0.01"); // Default to 0.01 for cheap testing
+  const [size, setSize] = useState("1"); // Default to 1 share for cheap testing
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handlePlaceOrderClick = (tokenId: string, side: Side) => {
+    // 检查是否有 API Key
+    const hasKeys = !!localStorage.getItem(`poly_api_keys_${aaAddress}`);
+    if (!hasKeys) {
+      setIsModalOpen(true);
+      return;
+    }
+    placeOrder(tokenId, parseFloat(price), parseFloat(size), side);
+  };
+
+  if (!aaAddress) {
+    return <div className="p-4 bg-gray-100 rounded text-gray-500">等待智能账户连接...</div>;
+  }
+
+  return (
+    <div className="flex flex-col gap-4 bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm w-full max-w-md mt-6">
+      <h3 className="font-bold text-xl text-blue-600 dark:text-blue-400 mb-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+        Polymarket 集成测试
+      </h3>
+
+      {/* 1. Approve & Enable */}
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-bold text-gray-600 dark:text-gray-400">1. 准备资金与授权</label>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          disabled={isProcessing || !sessionClient}
+          className="w-full py-3 px-4 bg-purple-600 text-white hover:bg-purple-700 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm shadow-md"
+        >
+          激活 Polymarket 交易权限 (授权 + Key)
+        </button>
+      </div>
+
+      {/* 2. Place Order */}
+      <div className="flex flex-col gap-3 mt-4 border border-gray-200 dark:border-gray-800 p-4 rounded-xl bg-gray-50 dark:bg-gray-950/50">
+        <label className="text-sm font-bold text-gray-800 dark:text-gray-200">2. 下注 (Place Order)</label>
+        
+        {marketTitle ? (
+          <div className="mb-2">
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">{marketTitle}</p>
+            <p className="text-xs text-gray-500 font-mono mt-1 mb-2">默认抓取 Token (Yes): {yesTokenId.slice(0, 10)}...</p>
+            <label className="text-xs text-gray-500 block mb-1">你想买哪个 Token？(可粘贴自定义的主网 Token ID)</label>
+            <input 
+              type="text" 
+              value={yesTokenId}
+              onChange={(e) => setYesTokenId(e.target.value)}
+              placeholder="0x..."
+              className="w-full text-xs font-mono p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500">正在抓取盘口数据...</p>
+        )}
+
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <label className="text-xs text-gray-500">买入价格 (单价)</label>
+            <input 
+              type="number" 
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="w-full text-sm p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-gray-500">买入数量 (份数)</label>
+            <input 
+              type="number" 
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              className="w-full text-sm p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => handlePlaceOrderClick(yesTokenId, Side.BUY)}
+            disabled={isProcessing || !sessionClient || !yesTokenId}
+            className="flex-1 py-4 bg-[#22c55e] text-white hover:bg-[#16a34a] rounded-xl font-bold text-lg transition-all disabled:opacity-40 shadow-sm active:scale-95 flex items-center justify-center gap-2"
+          >
+            是 (Yes)
+          </button>
+          <button
+            onClick={() => handlePlaceOrderClick(noTokenId, Side.BUY)}
+            disabled={isProcessing || !sessionClient || !noTokenId}
+            className="flex-1 py-4 bg-[#ef4444] text-white hover:bg-[#dc2626] rounded-xl font-bold text-lg transition-all disabled:opacity-40 shadow-sm active:scale-95 flex items-center justify-center gap-2"
+          >
+            否 (No)
+          </button>
+        </div>
+        <p className="text-[10px] text-gray-400 mt-2 text-center">* 提示: 买入方向代表你的预测，UI已简化为Polymarket经典样式</p>
+      </div>
+
+      {/* 3. Redeem */}
+      <div className="flex flex-col gap-2 mt-2">
+        <label className="text-xs font-bold text-gray-600 dark:text-gray-400">3. 结算 (Redeem Positions)</label>
+        <input 
+          type="text" 
+          placeholder="输入 Condition ID" 
+          value={conditionId}
+          onChange={(e) => setConditionId(e.target.value)}
+          className="text-sm p-2 border border-gray-300 dark:border-gray-700 rounded bg-transparent text-gray-800 dark:text-gray-200"
+        />
+        <button
+          onClick={() => redeemPositions(conditionId)}
+          disabled={isProcessing || !sessionClient || !conditionId}
+          className="py-2 px-4 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/50 rounded font-semibold transition-colors disabled:opacity-50"
+        >
+          链上提现/结算份额
+        </button>
+      </div>
+
+      {/* Logs */}
+      <div className="mt-4 bg-[#0d1117] text-green-400 p-3 rounded-lg border border-gray-700 flex flex-col h-40 font-mono text-xs text-left overflow-y-auto">
+        <span className="text-gray-500 mb-1 sticky top-0 bg-[#0d1117] pb-1 border-b border-gray-800">Polymarket 交互日志:</span>
+        {polyLogs.length === 0 ? (
+          <span className="text-gray-600 italic">暂无日志...</span>
+        ) : (
+          polyLogs.map((log, i) => (
+            <div key={i} className="mb-1 leading-tight break-all">
+              {log}
+            </div>
+          ))
+        )}
+      </div>
+
+      <EnablePolyModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => setIsModalOpen(false)}
+        kernelClient={kernelClient}
+        eoaClient={eoaClient}
+        aaAddress={aaAddress || ""}
+        rpcUrl={rpcUrl}
+      />
+    </div>
+  );
+}

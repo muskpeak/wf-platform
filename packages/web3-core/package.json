@@ -2,6 +2,33 @@
   "name": "@wf-platform/web3-core",
   "version": "0.1.0",
   "private": true,
-  "main": "index.js",
-  "dependencies": {}
+  "sideEffects": ["**/*.css"],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@metamask/connect-evm": "^2.1.1",
+    "@privy-io/react-auth": "^3.17.0",
+    "@rainbow-me/rainbowkit": "2.1.2",
+    "@tanstack/react-query": "^5.95.2",
+    "@wf-platform/uikit": "workspace:*",
+    "@zerodev/ecdsa-validator": "^5.4.9",
+    "@zerodev/permissions": "^5.6.3",
+    "@zerodev/sdk": "^5.5.10",
+    "permissionless": "^0.3.4",
+    "viem": "^2.47.6",
+    "wagmi": "2.14.12",
+    "zustand": "^5.0.9"
+  },
+  "peerDependencies": {
+    "lucide-react": ">=1.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": ">=17.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "lucide-react": "^1.40.0",
+    "typescript": "^5.4.5"
+  }
 }

@@ -52,3 +52,23 @@ PancakeSwap 采用的 **Turborepo + pnpm workspaces** 驱动的 **巨石型 Mono
 
 ### 总结
 无论最终运维是否配合方案 A，**采用 Monorepo 搭建底层架构都是绝对正确的第一步**。它让我们在开发阶段实现了代码的模块化，并在未来真正需要隔离部署时，拥有随时平滑切换到方案 A 的底气。
+
+---
+
+## 五、 API 与网络层架构规范 (Domain-Driven API Design)
+
+结合 PancakeSwap 和 Uniswap 的大厂最佳实践，我们确立了**“底层工具集中化，具体业务离散化”**的 API 存放准则：
+
+### 1. 基础网络层 (Infrastructure Layer)
+- **存放位置**：`packages/web3-core/src/api/httpClient.ts` (或其他底层包)。
+- **职责**：封装最原生的 HTTP/Fetch 能力，统一处理 JWT Token 注入、超时控制（AbortController）、JSON 解析以及全局错误的抛出。它只提供“发请求的枪”，**绝对不包含任何业务请求**。
+
+### 2. 主站自有业务层 (Domain Layer)
+- **存放位置**：主项目 `apps/web/src/features/[功能模块]/api/`
+- **规则**：遵循高内聚原则。例如“个人中心”的 API，必须存放在 `apps/web/src/features/user-center/api/getUserInfo.ts`。
+- **优势**：未来如果要重构或删除该业务模块，只需删掉整个文件夹，不会在全局 API 目录里留下任何垃圾代码。
+
+### 3. 三方集成业务层 (Integration Layer)
+- **存放位置**：对应的集成包，例如 `packages/integrations-lottery/src/api/`
+- **规则**：针对外部对接的三方彩票或预测系统，所有对应的 API 请求（如 `fetchLotteryDraws.ts`）**必须且只能**封闭在 `integrations-lottery` 包内。
+- **优势**：主项目 `apps/web` 完全不知道底层的 API URL 和参数，它只负责调用该包暴露出来的标准化 React Hooks（如 `useLotteryTickets`）来渲染 UI。彻底隔离三方逻辑。
