@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import { useWallets } from "@privy-io/react-auth";
 import { createPublicClient, http, createWalletClient, custom } from "viem";
 import { polygon } from "viem/chains";
+// @ts-ignore
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+// @ts-ignore
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk";
+// @ts-ignore
 import { KERNEL_V3_1, getEntryPoint } from "@zerodev/sdk/constants";
 
 const entryPoint = getEntryPoint("0.7");

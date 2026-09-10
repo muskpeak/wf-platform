@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { useWeb3Action } from "@wf-platform/web3-core/src/hooks/useWeb3Action";
+import { useWeb3Action } from "@wf-platform/hooks";
 
 import { motion } from "@wf-platform/uikit";
 

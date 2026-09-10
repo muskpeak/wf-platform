@@ -8,3 +8,5 @@ export { default as throttle } from 'lodash-es/throttle';
 export { default as cloneDeep } from 'lodash-es/cloneDeep';
 export { default as pick } from 'lodash-es/pick';
 export { default as omit } from 'lodash-es/omit';
+
+export * from './cn';

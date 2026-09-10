@@ -1,0 +1,3 @@
+# @wf-platform/lottery
+0xb1e2478e8a8772952d01c1e9aef1fb6bd7fa37b252352b4e4b60015044109258 渠道码
+Lottery business module.

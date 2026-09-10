@@ -1,6 +1,6 @@
 import { Address, PublicClient } from 'viem';
 import { useMulticall } from './useMulticall';
-import { ERC20_ABI } from '../config/abis/erc20';
+import { ERC20_ABI } from '@wf-platform/chain-config';
 
 /**
  * 业务层封装：批量查询代币余额

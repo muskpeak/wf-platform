@@ -5,6 +5,7 @@ import { createPublicClient, http, encodeFunctionData, erc20Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { polygon } from "viem/chains";
 
+
 import { toPermissionValidator } from "@zerodev/permissions";
 import { toSudoPolicy } from "@zerodev/permissions/policies";
 import { toECDSASigner } from "@zerodev/permissions/signers";
@@ -27,7 +28,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
   const [isSessionEnabled, setIsSessionEnabled] = useState(false);
   const [isEnabling, setIsEnabling] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
-  
+
   const [sessionKeysHistory, setSessionKeysHistory] = useState<SessionKeyInfo[]>([]);
 
   // Initialize session client and history from storage
@@ -38,7 +39,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
         try {
           const history: SessionKeyInfo[] = JSON.parse(stored);
           setSessionKeysHistory(history);
-          
+
           const activeKeyInfo = history.find(k => !k.revoked);
           // Only auto-enable if there's an active key
           if (activeKeyInfo && kernelClient && sudoValidator) {
@@ -52,14 +53,14 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
         const oldKey = localStorage.getItem("wf_platform_session_key");
         if (oldKey) {
           try {
-             const history = [{ privateKey: oldKey as `0x${string}`, createdAt: Date.now(), revoked: false }];
-             setSessionKeysHistory(history);
-             localStorage.setItem(SESSION_KEY_LOCAL_STORAGE_KEY, JSON.stringify(history));
-             localStorage.removeItem("wf_platform_session_key");
-             if (kernelClient && sudoValidator) {
-               await enableSessionKey(oldKey as `0x${string}`);
-             }
-          } catch(e) {}
+            const history = [{ privateKey: oldKey as `0x${string}`, createdAt: Date.now(), revoked: false }];
+            setSessionKeysHistory(history);
+            localStorage.setItem(SESSION_KEY_LOCAL_STORAGE_KEY, JSON.stringify(history));
+            localStorage.removeItem("wf_platform_session_key");
+            if (kernelClient && sudoValidator) {
+              await enableSessionKey(oldKey as `0x${string}`);
+            }
+          } catch (e) { }
         }
       }
     };
@@ -74,7 +75,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
     });
     const ecdsaSigner = await toECDSASigner({ signer: sessionKeySigner });
     const sudoPolicy = toSudoPolicy({});
-    
+
     const permissionValidator = await toPermissionValidator(publicClient, {
       entryPoint: entryPoint,
       kernelVersion: KERNEL_V3_1,
@@ -95,9 +96,9 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
       });
     }
 
-    const plugins: any = { 
+    const plugins: any = {
       sudo: sudoToUse,
-      regular: permissionValidator 
+      regular: permissionValidator
     };
 
     const sessionAccount = await createKernelAccount(publicClient, {
@@ -119,7 +120,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
       bundlerTransport: http(rpcUrl),
       paymaster: paymasterClient,
     });
-    
+
     return { sClient, permissionValidator };
   };
 
@@ -144,14 +145,14 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
             value: BigInt(0),
             data: dummyData,
           });
-          
+
           // Update history
           const newInfo: SessionKeyInfo = {
             privateKey,
             createdAt: Date.now(),
             revoked: false,
           };
-          
+
           setSessionKeysHistory(prev => {
             const newHistory = [...prev, newInfo];
             localStorage.setItem(SESSION_KEY_LOCAL_STORAGE_KEY, JSON.stringify(newHistory));
@@ -175,7 +176,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
   const revokeSessionKeyOnChain = useCallback(async (privateKeyToRevoke: `0x${string}`) => {
     if (!kernelClient || !zeroDevProjectId) throw new Error("Kernel client not initialized");
     setIsRevoking(true);
-    
+
     try {
       // 1. Reconstruct the plugin for the key we want to revoke
       const { permissionValidator } = await createSessionAccountClient(privateKeyToRevoke, true);
@@ -188,7 +189,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
 
       // 3. Mark it as revoked in history
       setSessionKeysHistory(prev => {
-        const newHistory = prev.map(k => 
+        const newHistory = prev.map(k =>
           k.privateKey === privateKeyToRevoke ? { ...k, revoked: true } : k
         );
         localStorage.setItem(SESSION_KEY_LOCAL_STORAGE_KEY, JSON.stringify(newHistory));
@@ -200,7 +201,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
         setSessionClient(null);
         setIsSessionEnabled(false);
       }
-      
+
       return tx;
     } catch (error) {
       console.error("Failed to revoke session key on-chain:", error);
@@ -214,7 +215,7 @@ export function useSessionKey(kernelClient: any, sudoValidator: any, zeroDevProj
     if (!zeroDevProjectId || !sudoValidator || !kernelClient) throw new Error("Not initialized");
     // Create a temporary client for this key without sudo to prevent Triggering Enable Signature
     const { sClient } = await createSessionAccountClient(privateKeyToTest, false);
-    
+
     const data = encodeFunctionData({
       abi: erc20Abi,
       functionName: "transfer",
