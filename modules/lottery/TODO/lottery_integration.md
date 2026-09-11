@@ -20,3 +20,7 @@
 ### 3.2 UI 改造 (`modules/lottery/src/components`)
 - `FundingPanel`：新建划转面板组件。展示【钱包余额】和【游戏内筹码(WUSD)】。
 - `Lottery3DView` / `LotteryWorldView`：在现有的静态 UI 上绑定状态，当下注额度超过 WUSD 余额时，提示先划转。执行 `executePurchaseWithAuthorizationV4` 时发起 EIP-712 签名。
+
+## 4. 候选环境合约清单 (待定)
+- 详见：[STANDALONE_V4_CANDIDATE_ADDRESSES.md](./STANDALONE_V4_CANDIDATE_ADDRESSES.md)
+

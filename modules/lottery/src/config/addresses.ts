@@ -1,20 +1,26 @@
-import { mainnet, polygon, sepolia } from 'viem/chains';
+import { polygon } from 'viem/chains';
+
+
 
 /**
- * Lottery Specific Contracts
- * Only imported and used within the integrations-lottery package
+ * 第三方彩票 World Lotto 专用合约地址 (UMA版, Polygon Mock)
  */
-export const LOTTERY_ADDRESSES: Record<number, { mainLottery: `0x${string}`; rewardPool: `0x${string}` }> = {
-  [mainnet.id]: {
-    mainLottery: '0x1234567890123456789012345678901234567890',
-    rewardPool: '0x0987654321098765432109876543210987654321',
-  },
+export const WORLD_LOTTO_ADDRESSES = {
   [polygon.id]: {
-    mainLottery: '0x1111111111111111111111111111111111111111',
-    rewardPool: '0x2222222222222222222222222222222222222222',
+    rounds: "0x9276F34f332d83e87Ee1810dd54237c732759420" as `0x${string}`,
+    settlement: "0xBCf4CeBD48e59335B8bbB58e8721506a3D63b8B8" as `0x${string}`,
   },
-  [sepolia.id]: {
-    mainLottery: '0x3333333333333333333333333333333333333333',
-    rewardPool: '0x4444444444444444444444444444444444444444',
-  }
 };
+
+/**
+ * 第三方彩票出入金合约地址 (来自 THIRD_PARTY_FUNDING_INTEGRATION_GUIDE.md)
+ */
+export const FUNDING_ADDRESSES = {
+  [polygon.id]: {
+    mUSDC: "0xc65577f875eBA302e4Ba5cDF429351b0Ce00A8bF" as `0x${string}`,
+    unifiedLedger: "0xC93f8062932bAFA24832B427d29A505395bc759D" as `0x${string}`,
+    stablecoinReserve: "0x68B6bf1EE6c464562A7296687a98cE40e334072C" as `0x${string}`,
+  },
+  // 可以预留其他链，比如 BSC
+};
+

@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Shuffle } from "lucide-react";
+import { toast } from "sonner";
 import { useWorldLottoStore } from "../store/useWorldLottoStore";
 
 export function CurrentBetSummaryCard() {
@@ -141,7 +142,7 @@ export function CurrentBetSummaryCard() {
           type="button"
           disabled={bets.length === 0}
           onClick={() => {
-            alert(`确认投注成功！共 ${totalTickets} 注，总计支付 ${totalPay.toFixed(2)} USDT`);
+            toast.success(`确认投注成功！共 ${totalTickets} 注，总计支付 ${totalPay.toFixed(2)} USDT`);
           }}
           className="w-full bg-[#008cff] hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold h-[48px] sm:h-[52px] rounded-full text-[16px] shadow-sm shadow-blue-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center"
         >

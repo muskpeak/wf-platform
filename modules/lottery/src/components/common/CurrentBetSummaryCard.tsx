@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { BetItem } from "../../views/world/store/useWorldLottoStore";
 
 export interface CurrentBetSummaryCardProps {
@@ -10,6 +11,12 @@ export interface CurrentBetSummaryCardProps {
   clearBets: () => void;
   updateBetMultiplier: (id: string, multiplier: number) => void;
   onConfirm?: () => void;
+  isLoading?: boolean;
+  isSalesClosed?: boolean;
+  isEnded?: boolean;
+  isUpcoming?: boolean;
+  ticketPrice?: string | number;
+  currency?: string;
 }
 
 export function CurrentBetSummaryCard({
@@ -18,16 +25,32 @@ export function CurrentBetSummaryCard({
   clearBets,
   updateBetMultiplier,
   onConfirm,
+  isLoading,
+  isSalesClosed,
+  isEnded,
+  isUpcoming,
+  ticketPrice = "1",
+  currency = "WUSD",
 }: CurrentBetSummaryCardProps) {
   const totalTickets = bets.length;
   const totalMultiplier = bets.reduce((acc, b) => acc + (b.multiplier || 1), 0);
-  const totalPay = totalMultiplier * 1; // 1 USDT base price
+  const unitPriceNum = Number(ticketPrice) || 1;
+  const totalPay = totalMultiplier * unitPriceNum;
+  const isMarketClosed = Boolean(isSalesClosed || isEnded || isUpcoming);
 
   const handleConfirm = () => {
+    if (isUpcoming) {
+      toast.error("当前轮次尚未开售，暂无法投注");
+      return;
+    }
+    if (isSalesClosed || isEnded) {
+      toast.error("当前轮次销售已截止，无法投注");
+      return;
+    }
     if (onConfirm) {
       onConfirm();
     } else {
-      alert(`确认投注成功！共 ${totalTickets} 注，总计支付 ${totalPay.toFixed(2)} USDT`);
+      toast.success(`确认投注成功！共 ${totalTickets} 注，总计支付 ${totalPay.toFixed(2)} ${currency}`);
     }
   };
 
@@ -132,7 +155,7 @@ export function CurrentBetSummaryCard({
           <div className="flex items-center justify-between pt-1 border-t border-gray-100">
             <span className="text-[16px] font-extrabold text-[#0f172a]">预计支付</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-[13px] font-bold text-[#64748b]">USDT</span>
+              <span className="text-[13px] font-bold text-[#64748b]">{currency}</span>
               <span className="text-[22px] sm:text-[24px] font-black text-[#008ef0] font-mono">
                 {totalPay.toFixed(2)}
               </span>
@@ -141,11 +164,22 @@ export function CurrentBetSummaryCard({
         </div>
         <button
           type="button"
-          disabled={bets.length === 0}
+          disabled={bets.length === 0 || isLoading || isMarketClosed}
           onClick={handleConfirm}
-          className="w-full bg-[#008cff] hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold h-[48px] sm:h-[52px] rounded-full text-[16px] shadow-sm shadow-blue-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center"
+          className="w-full bg-[#008cff] hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold h-[48px] sm:h-[52px] rounded-full text-[16px] shadow-sm shadow-blue-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
         >
-          确认投注
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              正在提交...
+            </span>
+          ) : isUpcoming ? (
+            "即将开售"
+          ) : isSalesClosed || isEnded ? (
+            "销售已截止"
+          ) : (
+            "确认投注"
+          )}
         </button>
       </div>
     </div>

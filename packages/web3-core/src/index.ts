@@ -7,3 +7,4 @@ export * from "./utils/contractErrors";
 export * from "./utils/formatters";
 export * from "./hooks/useMulticall";
 export * from "./hooks/useTokenBalances";
+export * from "./hooks/usePlatformBalances";

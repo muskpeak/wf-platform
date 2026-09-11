@@ -18,13 +18,21 @@ import { mainnet, polygon, arbitrum, sepolia } from 'wagmi/chains';
 
 const queryClient = new QueryClient();
 
+export interface Web3ContextType {
+  zeroDevProjectId: string;
+}
+
+const Web3Context = React.createContext<Web3ContextType>({ zeroDevProjectId: "" });
+
+export const useWeb3Config = () => React.useContext(Web3Context);
+
 export interface Web3ProviderProps {
   privyAppId: string;
   zeroDevProjectId: string;
   children: ReactNode;
 }
 
-export function Web3Provider({ privyAppId, children }: Web3ProviderProps) {
+export function Web3Provider({ privyAppId, zeroDevProjectId, children }: Web3ProviderProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -72,33 +80,8 @@ export function Web3Provider({ privyAppId, children }: Web3ProviderProps) {
   // SSR 阶段：仅渲染基础 Provider 结构，防止服务器阶段触发 Wagmi / RainbowKit 的 WalletConnect 初始化
   if (!mounted || !wagmiConfig) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <PrivyProvider
-          appId={privyAppId}
-          config={{
-            loginMethods: ["email", "wallet", "google", "apple", "twitter"],
-            appearance: {
-              theme: "dark",
-              accentColor: "#676FFF",
-              logo: "https://auth.privy.io/logos/privy-logo-dark.png",
-            },
-            embeddedWallets: {
-              ethereum: {
-                createOnLogin: "users-without-wallets",
-              },
-            },
-          }}
-        >
-          {children}
-        </PrivyProvider>
-      </QueryClientProvider>
-    );
-  }
-
-  return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({ accentColor: '#7b3fe4' })}>
+      <Web3Context.Provider value={{ zeroDevProjectId }}>
+        <QueryClientProvider client={queryClient}>
           <PrivyProvider
             appId={privyAppId}
             config={{
@@ -117,9 +100,38 @@ export function Web3Provider({ privyAppId, children }: Web3ProviderProps) {
           >
             {children}
           </PrivyProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+        </QueryClientProvider>
+      </Web3Context.Provider>
+    );
+  }
+
+  return (
+    <Web3Context.Provider value={{ zeroDevProjectId }}>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider theme={darkTheme({ accentColor: '#7b3fe4' })}>
+            <PrivyProvider
+              appId={privyAppId}
+              config={{
+                loginMethods: ["email", "wallet", "google", "apple", "twitter"],
+                appearance: {
+                  theme: "dark",
+                  accentColor: "#676FFF",
+                  logo: "https://auth.privy.io/logos/privy-logo-dark.png",
+                },
+                embeddedWallets: {
+                  ethereum: {
+                    createOnLogin: "users-without-wallets",
+                  },
+                },
+              }}
+            >
+              {children}
+            </PrivyProvider>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </Web3Context.Provider>
   );
 }
 

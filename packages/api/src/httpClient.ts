@@ -8,6 +8,8 @@
  * - RESTful methods (get, post, put, delete)
  */
 
+export type ApiType = "default" | "lottery" | string;
+
 export interface RequestConfig extends Omit<RequestInit, 'body'> {
   url?: string;
   baseURL?: string;
@@ -16,6 +18,7 @@ export interface RequestConfig extends Omit<RequestInit, 'body'> {
   timeoutMs?: number; // Timeout in ms, default 15000ms
   skipAuth?: boolean; // Skip Token injection
   skipErrorHandler?: boolean; // Disable global error interceptor for specific request
+  apiType?: ApiType; // Define which API to route to. Default is "default" (WF).
 }
 
 export class HttpError extends Error {
@@ -38,6 +41,7 @@ type ErrorInterceptor = (error: HttpError, config: RequestConfig) => Promise<any
 
 export class HttpClient {
   private baseURL: string;
+  private endpoints: Record<string, string>;
   private defaultTimeout: number;
 
   public interceptors = {
@@ -46,13 +50,36 @@ export class HttpClient {
     error: [] as ErrorInterceptor[],
   };
 
-  constructor(config: { baseURL?: string; defaultTimeout?: number } = {}) {
+  constructor(config: { baseURL?: string; endpoints?: Record<string, string>; defaultTimeout?: number } = {}) {
     this.baseURL = config.baseURL || "";
+    this.endpoints = {
+      default: config.baseURL || "",
+      ...config.endpoints,
+    };
     this.defaultTimeout = config.defaultTimeout || 15000;
   }
 
   public setBaseURL(url: string) {
     this.baseURL = url;
+    this.endpoints["default"] = url;
+  }
+
+  public setEndpoint(type: string, url: string) {
+    this.endpoints[type] = url;
+  }
+
+  public setEndpoints(endpoints: Record<string, string>) {
+    this.endpoints = { ...this.endpoints, ...endpoints };
+    if (endpoints["default"]) {
+      this.baseURL = endpoints["default"];
+    }
+  }
+
+  public getEndpoint(type?: string): string {
+    if (type && this.endpoints[type]) {
+      return this.endpoints[type];
+    }
+    return this.baseURL || this.endpoints["default"] || "";
   }
 
   public async request<T = any>(config: RequestConfig): Promise<T> {
@@ -62,11 +89,25 @@ export class HttpClient {
       processedConfig = await interceptor(processedConfig);
     }
 
-    // 2. Build complete URL
-    const url = new URL(
-      processedConfig.url || "",
-      processedConfig.baseURL || this.baseURL || (typeof window !== "undefined" ? window.location.origin : "http://localhost")
-    );
+    // 2. Determine base URL based on apiType
+    const selectedBaseURL = processedConfig.baseURL || this.getEndpoint(processedConfig.apiType || "default");
+    
+    // Build full URL
+    let fullUrl: string;
+    const reqUrl = processedConfig.url || "";
+    if (reqUrl.startsWith("http://") || reqUrl.startsWith("https://")) {
+      fullUrl = reqUrl;
+    } else if (selectedBaseURL) {
+      const baseClean = selectedBaseURL.replace(/\/+$/, "");
+      const pathClean = reqUrl.replace(/^\/+/, "");
+      fullUrl = pathClean ? `${baseClean}/${pathClean}` : baseClean;
+    } else {
+      fullUrl = typeof window !== "undefined"
+        ? `${window.location.origin}${reqUrl.startsWith("/") ? "" : "/"}${reqUrl}`
+        : `http://localhost${reqUrl.startsWith("/") ? "" : "/"}${reqUrl}`;
+    }
+
+    const url = new URL(fullUrl);
 
     // Process Query Params
     if (processedConfig.params) {
@@ -188,7 +229,11 @@ export class HttpClient {
 // Export Default Instance
 // ----------------------------------------------------------------------
 export const apiClient = new HttpClient({
-  baseURL: typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL : "",
+  baseURL: "",
+  endpoints: {
+    default: "",
+    lottery: "https://wf.vip/backend/api/v1",
+  },
 });
 
 // [Interceptor] Response: Unpacks data based on backend 'code' convention

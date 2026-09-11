@@ -13,18 +13,20 @@ interface IssueStatusStripProps {
   countdownNote?: string;
   statusText?: string;
   progressPercent?: number;
+  currency?: string;
 }
 
 export function IssueStatusStrip({
   issueNo = "2450 期",
   issueNote = "投注进行中",
-  ticketPrice = "1 USDT",
+  ticketPrice = "1 WUSD",
   ticketNote = "7位数号码",
-  prizePool = "2162540.4",
-  countdown = "2天 14:08",
+  prizePool = "0.00",
+  countdown = "0天 00:00:00",
   countdownNote = "周五 17:00 UTC",
   statusText = "投注中",
   progressPercent = 33.5,
+  currency = "WUSD",
 }: IssueStatusStripProps) {
   // Format issue number cleanly: "第 2450 期" for PC, "2450 期" for mobile
   const rawIssueNumber = issueNo.replace(/[^0-9]/g, "") || "2450";
@@ -63,10 +65,10 @@ export function IssueStatusStrip({
           {/* 细竖分割线 */}
           <div className="w-[1px] h-7 bg-[#eaedf0] mx-2" />
 
-          {/* 第 3 列: 当前奖池/USDT */}
+          {/* 第 3 列: 当前奖池/{currency} */}
           <div className="flex flex-col min-w-0">
             <span className="text-[11px] font-normal text-[#767676] leading-none truncate">
-              当前奖池/USDT
+              当前奖池/{currency}
             </span>
             <span className="text-[17px] sm:text-[19px] font-bold text-[#1a1a1a] font-mono leading-tight mt-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
               {prizePool}
@@ -181,7 +183,7 @@ export function IssueStatusStrip({
               {prizePool}
             </span>
             <span className="text-[11px] font-normal text-[#767676]">
-              USDT
+              {currency}
             </span>
           </div>
         </div>

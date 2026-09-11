@@ -42,51 +42,6 @@ export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonPr
   // Hook into ZeroDev for smart account AA address derivation
   const { aaAddress, isInitializing: isZeroDevInitializing } = useZeroDev(zeroDevProjectId)
 
-  // Debug log
-  React.useEffect(() => {
-    if (isClient) {
-      console.log('[ConnectButton] 状态:', {
-        isClient,
-        ready,
-        authenticated,
-        token: !!token,
-        profileAddress: profile?.address,
-        aaAddress,
-        isZeroDevInitializing,
-        walletsCount: wallets.length,
-      })
-
-      console.log('[ConnectButton] 🔍 详细诊断:')
-      console.log('  ├─ Privy 是否就绪 (ready):', ready)
-      console.log('  ├─ Privy 是否认证 (authenticated):', authenticated)
-      console.log('  ├─ ZeroDev AA 地址:', aaAddress || '未计算')
-      console.log('  ├─ 钱包数量:', wallets.length)
-      console.log('  ├─ 钱包列表:', wallets.map((w) => w.walletClientType).join(', ') || '无')
-      console.log('  ├─ AuthStore token:', token ? '存在' : '不存在')
-      console.log('  ├─ AuthStore profile 地址:', profile?.address || '无')
-      console.log(
-        '  └─ 当前应该显示:',
-        !isClient || !ready
-          ? '⏳ 加载中...'
-          : (authenticated || wallets.length > 0) && aaAddress
-            ? '✅ 已登录界面'
-            : (authenticated || wallets.length > 0) &&
-                (isZeroDevInitializing || (!aaAddress && wallets.length > 0))
-              ? '⏳ 初始化中...'
-              : '🔑 登录按钮'
-      )
-    }
-  }, [
-    isClient,
-    ready,
-    authenticated,
-    token,
-    profile,
-    aaAddress,
-    isZeroDevInitializing,
-    wallets.length,
-  ])
-
   // Real Logout Handler
   const handleLogout = React.useCallback(() => {
     prevAddressRef.current = undefined
@@ -103,7 +58,6 @@ export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonPr
     const currentAddress = currentExternalWallet?.address || wagmiAddress
 
     if (prevAddressRef.current && !currentAddress && !isConnected) {
-      console.log('[ConnectButton] 钱包插件主动断开连接,立即登出并清空状态')
       handleLogout()
     }
 
@@ -111,7 +65,6 @@ export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonPr
       const isEmbeddedOnly =
         wallets.length > 0 && wallets.every((w) => w.walletClientType === 'privy')
       if (!isEmbeddedOnly && wallets.length === 0 && !isConnected) {
-        console.log('[ConnectButton] 检测到外部钱包连接掉线,触发自动登出')
         handleLogout()
       }
     }
@@ -153,19 +106,6 @@ export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonPr
   // 客户端未挂载时显示加载
   // 必须等待 Privy ready，以防止“已登录用户”在页面刚刷新时看到闪烁的登录按钮
   if (!isClient || !ready || (wallets.length > 0 && !aaAddress && isZeroDevInitializing)) {
-    console.log(
-      '[ConnectButton] ⏳ 显示加载状态 (isClient:',
-      isClient,
-      ', ready:',
-      ready,
-      ', wallets:',
-      wallets.length,
-      ', aaAddress:',
-      !!aaAddress,
-      ', isZeroDevInitializing:',
-      isZeroDevInitializing,
-      ')'
-    )
     return (
       <button
         disabled
@@ -178,15 +118,6 @@ export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonPr
 
   // 已认证且有 AA 地址,或者有钱包且有 AA 地址 (兼容 Privy session 过期但钱包数据还在的情况)
   if ((authenticated || wallets.length > 0) && aaAddress) {
-    console.log(
-      '[ConnectButton] ✅ 显示已登录界面 (authenticated:',
-      authenticated,
-      ', wallets:',
-      wallets.length,
-      ', aaAddress:',
-      aaAddress,
-      ')'
-    )
     const displayAddress = profile?.address || aaAddress
 
     return (

@@ -20,6 +20,9 @@ const serverEnvSchema = z.object({
   ALCHEMY_API_KEY: z.string().optional(),
   WALLETCONNECT_PROJECT_ID: z.string().optional(),
 
+  // Third-Party Services
+  LOTTERY_API_URL: z.string().url().default("https://wf.vip/backend/api/v1"),
+
   // Server Secrets (Never exposed to the client)
   SESSION_SECRET: z.string().optional(),
   DATABASE_URL: z.string().url().optional(),
@@ -35,6 +38,7 @@ export function getServerEnv(): ServerEnv {
   return serverEnvSchema.parse({
     NODE_ENV: process.env.NODE_ENV,
     NEXT_API_BASE_URL: process.env.NEXT_API_BASE_URL,
+    LOTTERY_API_URL: process.env.LOTTERY_API_URL,
     CHAIN_ID: process.env.CHAIN_ID,
     CHAIN_RPC_URL: process.env.CHAIN_RPC_URL,
     USDC_ADDRESS: process.env.USDC_ADDRESS,

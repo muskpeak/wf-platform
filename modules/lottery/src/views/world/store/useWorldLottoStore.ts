@@ -41,8 +41,8 @@ export const useWorldLottoStore = create<WorldLottoState>((set, get) => ({
   activeTab: "current",
   setActiveTab: (tab) => set({ activeTab: tab }),
 
-  selectedDigits: [8, 1, null, null, 5, null, null],
-  focusedIndex: 2,
+  selectedDigits: Array(7).fill(null),
+  focusedIndex: 0,
   setFocusedIndex: (index) => set({ focusedIndex: index }),
 
   setDigit: (index, digit) => {
@@ -71,16 +71,11 @@ export const useWorldLottoStore = create<WorldLottoState>((set, get) => ({
     });
   },
 
-  currentMultiplier: 2,
+  currentMultiplier: 1,
   setCurrentMultiplier: (multiplier) =>
     set({ currentMultiplier: Math.min(10000, Math.max(1, isNaN(multiplier) ? 1 : multiplier)) }),
 
-  bets: [
-    { id: "1", numbers: [8, 1, 4, 5, 8, 7, 9], multiplier: 2 },
-    { id: "2", numbers: [8, 1, 4, 5, 8, 7, 9], multiplier: 2 },
-    { id: "3", numbers: [8, 1, 4, 5, 8, 7, 9], multiplier: 2 },
-    { id: "4", numbers: [8, 1, 4, 5, 8, 7, 9], multiplier: 2 },
-  ],
+  bets: [],
 
   addCurrentBet: () => {
     const { selectedDigits, currentMultiplier, bets } = get();
