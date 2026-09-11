@@ -20,6 +20,7 @@
     "@wf-platform/navigation": "workspace:^",
     "@wf-platform/uikit": "workspace:*",
     "@wf-platform/web3-core": "workspace:*",
+    "framer-motion": "^13.2.0",
     "i18next": "^26.4.1",
     "lucide-react": "^1.40.0",
     "next": "14.2.15",
