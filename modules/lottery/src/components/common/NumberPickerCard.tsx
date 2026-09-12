@@ -36,6 +36,7 @@ export interface NumberPickerCardProps {
   digitsCount?: number;              // 3 or 7, default 7
   slots?: PickerSlotConfig[];        // custom slot labels/icons
   titleLabel?: string;               // override header title
+  hideMultiplier?: boolean;          // hide multipliers (e.g. for Lotto 3D tickets mode)
 
   // Store state (injected by parent)
   selectedDigits: (number | null)[];
@@ -55,6 +56,7 @@ export function NumberPickerCard({
   digitsCount = 7,
   slots,
   titleLabel,
+  hideMultiplier = false,
   selectedDigits,
   focusedIndex,
   currentMultiplier,
@@ -214,13 +216,15 @@ export function NumberPickerCard({
                   </div>
                 </div>
 
-                <span
-                  className={`text-[9px] sm:text-[11px] mt-1.5 text-center transition-colors font-medium ${
-                    isFocused ? "text-[#008cff] font-bold" : "text-[#9aa6b2]"
-                  }`}
-                >
-                  {slot.label}
-                </span>
+                {!hideMultiplier && (
+                  <span
+                    className={`text-[9px] sm:text-[11px] mt-1.5 text-center transition-colors font-medium ${
+                      isFocused ? "text-[#008cff] font-bold" : "text-[#9aa6b2]"
+                    }`}
+                  >
+                    {slot.label}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -255,76 +259,82 @@ export function NumberPickerCard({
             onClick={() => addRandomBets(n)}
             className="flex-1 h-[38px] rounded-[20px] border border-[#dce2ec] bg-white hover:bg-gray-50 text-[11px] sm:text-[13px] font-medium text-[#163300] flex items-center justify-center active:scale-95 transition-all shadow-2xs cursor-pointer"
           >
-            随机 {n} 注
+            {hideMultiplier ? `随机 ${n} 张` : `随机 ${n} 注`}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={() => { setCurrentMultiplier(1); setMultiplierInput("1"); }}
-          className="w-[58px] h-[38px] rounded-[20px] bg-[#d5dbe9] hover:bg-[#c9d1df] text-[11px] sm:text-[13px] font-medium text-[#163300] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-          title="重置倍数"
-        >
-          重置
-        </button>
+        {!hideMultiplier && (
+          <button
+            type="button"
+            onClick={() => { setCurrentMultiplier(1); setMultiplierInput("1"); }}
+            className="w-[58px] h-[38px] rounded-[20px] bg-[#d5dbe9] hover:bg-[#c9d1df] text-[11px] sm:text-[13px] font-medium text-[#163300] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+            title="重置倍数"
+          >
+            重置
+          </button>
+        )}
       </div>
 
-      {/* 5. Multiplier chips */}
-      <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-1 border-t border-[#dfe2ed]">
-        {PRESET_MULTIPLIERS.map((m) => {
-          const isSelected = currentMultiplier === m;
-          return (
-            <button
-              key={m}
-              type="button"
-              onClick={() => { setCurrentMultiplier(m); setMultiplierInput(m.toString()); }}
-              className={`flex-1 h-[36px] rounded-[8px] border text-[13px] sm:text-[14px] font-medium transition-all cursor-pointer flex items-center justify-center ${
-                isSelected
-                  ? "border-[#008cff] bg-blue-50 text-[#008cff] font-bold"
-                  : "border-[#dce2ec] bg-white text-[#163300] hover:border-gray-400"
-              }`}
-            >
-              x{m}
-            </button>
-          );
-        })}
-      </div>
+      {/* 5. Multiplier chips (仅在允许倍率时展示) */}
+      {!hideMultiplier && (
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-1 border-t border-[#dfe2ed]">
+          {PRESET_MULTIPLIERS.map((m) => {
+            const isSelected = currentMultiplier === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setCurrentMultiplier(m); setMultiplierInput(m.toString()); }}
+                className={`flex-1 h-[36px] rounded-[8px] border text-[13px] sm:text-[14px] font-medium transition-all cursor-pointer flex items-center justify-center ${
+                  isSelected
+                    ? "border-[#008cff] bg-blue-50 text-[#008cff] font-bold"
+                    : "border-[#dce2ec] bg-white text-[#163300] hover:border-gray-400"
+                }`}
+              >
+                x{m}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* 6. Multiplier stepper + add bet */}
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="bg-white h-[46px] rounded-[16px] px-2.5 sm:px-3 flex items-center justify-between shadow-xs flex-1 max-w-[210px] shrink-0">
-          <span className="text-[12px] sm:text-[13px] font-medium text-[#64715f] shrink-0">倍数</span>
-          <button
-            type="button"
-            onClick={() => { const next = Math.max(1, currentMultiplier - 1); setCurrentMultiplier(next); setMultiplierInput(next.toString()); }}
-            disabled={currentMultiplier <= 1}
-            className="w-7 h-7 flex items-center justify-center text-[18px] font-bold text-[#64715f] hover:text-black disabled:opacity-25 cursor-pointer select-none shrink-0"
-          >
-            −
-          </button>
-          <div className="flex items-center justify-center font-mono font-bold text-[#050608] bg-gray-50/80 px-1.5 py-0.5 rounded-lg border border-gray-100">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={multiplierInput}
-              onChange={(e) => handleMultiplierChange(e.target.value)}
-              onBlur={handleMultiplierBlur}
-              className="w-[46px] sm:w-[50px] text-center bg-transparent outline-none font-bold text-[#050608] text-[15px] sm:text-[16px]"
-            />
-            <span className="text-[13px] text-[#64715f] font-bold">x</span>
+        {!hideMultiplier && (
+          <div className="bg-white h-[46px] rounded-[16px] px-2.5 sm:px-3 flex items-center justify-between shadow-xs flex-1 max-w-[210px] shrink-0">
+            <span className="text-[12px] sm:text-[13px] font-medium text-[#64715f] shrink-0">倍数</span>
+            <button
+              type="button"
+              onClick={() => { const next = Math.max(1, currentMultiplier - 1); setCurrentMultiplier(next); setMultiplierInput(next.toString()); }}
+              disabled={currentMultiplier <= 1}
+              className="w-7 h-7 flex items-center justify-center text-[18px] font-bold text-[#64715f] hover:text-black disabled:opacity-25 cursor-pointer select-none shrink-0"
+            >
+              −
+            </button>
+            <div className="flex items-center justify-center font-mono font-bold text-[#050608] bg-gray-50/80 px-1.5 py-0.5 rounded-lg border border-gray-100">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={multiplierInput}
+                onChange={(e) => handleMultiplierChange(e.target.value)}
+                onBlur={handleMultiplierBlur}
+                className="w-[46px] sm:w-[50px] text-center bg-transparent outline-none font-bold text-[#050608] text-[15px] sm:text-[16px]"
+              />
+              <span className="text-[13px] text-[#64715f] font-bold">x</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => { const next = Math.min(10000, currentMultiplier + 1); setCurrentMultiplier(next); setMultiplierInput(next.toString()); }}
+              disabled={currentMultiplier >= 10000}
+              className="w-7 h-7 flex items-center justify-center text-[18px] font-bold text-[#008cff] hover:text-blue-700 disabled:opacity-25 cursor-pointer select-none shrink-0"
+            >
+              +
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => { const next = Math.min(10000, currentMultiplier + 1); setCurrentMultiplier(next); setMultiplierInput(next.toString()); }}
-            disabled={currentMultiplier >= 10000}
-            className="w-7 h-7 flex items-center justify-center text-[18px] font-bold text-[#008cff] hover:text-blue-700 disabled:opacity-25 cursor-pointer select-none shrink-0"
-          >
-            +
-          </button>
-        </div>
+        )}
         <button
           type="button"
           onClick={addCurrentBet}
-          className="flex-1 h-[46px] rounded-[14px] bg-[#d5dbe9] hover:bg-[#c6d0e2] active:bg-[#b8c4d8] text-[13px] sm:text-[15px] font-bold text-[#303030] flex items-center justify-center transition-colors cursor-pointer active:scale-98 shrink-0"
+          className="flex-1 h-[46px] rounded-[14px] bg-[#d5dbe9] hover:bg-[#c6d0e2] active:bg-[#b8c4d8] text-[13px] sm:text-[15px] font-bold text-[#303030] flex items-center justify-center transition-colors cursor-pointer active:scale-98 shrink-0 w-full"
         >
           添加到本次投注
         </button>

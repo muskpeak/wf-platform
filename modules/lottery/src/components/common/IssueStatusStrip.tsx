@@ -44,6 +44,7 @@ export function IssueStatusStrip({
           progressBar: "bg-gradient-to-r from-[#60a5fa] to-[#008cff]",
         };
       case "投注中":
+      case "进行中":
         return {
           badge: "bg-[#ecfdf5] text-[#10B981] border border-[#a7f3d0]",
           dot: "bg-[#10B981]",

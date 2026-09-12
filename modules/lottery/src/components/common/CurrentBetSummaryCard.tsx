@@ -15,6 +15,7 @@ export interface CurrentBetSummaryCardProps {
   isSalesClosed?: boolean;
   isEnded?: boolean;
   isUpcoming?: boolean;
+  hideMultiplier?: boolean;
   ticketPrice?: string | number;
   currency?: string;
 }
@@ -29,11 +30,12 @@ export function CurrentBetSummaryCard({
   isSalesClosed,
   isEnded,
   isUpcoming,
+  hideMultiplier = false,
   ticketPrice = "1",
   currency = "WUSD",
 }: CurrentBetSummaryCardProps) {
   const totalTickets = bets.length;
-  const totalMultiplier = bets.reduce((acc, b) => acc + (b.multiplier || 1), 0);
+  const totalMultiplier = bets.reduce((acc, b) => acc + (hideMultiplier ? 1 : (b.multiplier || 1)), 0);
   const unitPriceNum = Number(ticketPrice) || 1;
   const totalPay = totalMultiplier * unitPriceNum;
   const isMarketClosed = Boolean(isSalesClosed || isEnded || isUpcoming);
@@ -50,19 +52,22 @@ export function CurrentBetSummaryCard({
     if (onConfirm) {
       onConfirm();
     } else {
-      toast.success(`确认投注成功！共 ${totalTickets} 注，总计支付 ${totalPay.toFixed(2)} ${currency}`);
+      const unitWord = hideMultiplier ? "张" : "注";
+      toast.success(`确认投注成功！共 ${totalTickets} ${unitWord}，总计支付 ${totalPay.toFixed(2)} ${currency}`);
     }
   };
 
   return (
-    <div className="bg-white rounded-[22px] sm:rounded-[26px] p-4 sm:p-6 flex flex-col justify-between gap-5 border border-[#eef3fa] shadow-xs h-full">
+    <div className="bg-white rounded-[22px] sm:rounded-[26px] p-4 sm:p-5 flex flex-col justify-between gap-4 border border-[#eef3fa] shadow-xs h-full">
       {/* 上半部分：标题、清空与号码列表 */}
-      <div className="flex flex-col gap-4 flex-1">
+      <div className="flex flex-col gap-3.5 flex-1">
         {/* 1. 标题与一键清空 */}
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             <h3 className="text-[16px] sm:text-[18px] font-bold text-[#163300]">本次投注</h3>
-            <span className="text-[12px] text-[#707070]">已选 {totalTickets} 注</span>
+            <span className="text-[12px] text-[#707070]">
+              已选 {totalTickets} {hideMultiplier ? "张" : "注"}
+            </span>
           </div>
           <button
             type="button"
@@ -80,7 +85,7 @@ export function CurrentBetSummaryCard({
         <div className="flex flex-col gap-2 flex-1">
           <div className="flex items-center justify-between text-[13px] font-bold text-[#4b5767] px-1">
             <span>号码</span>
-            <span>倍率 / 操作</span>
+            <span>{hideMultiplier ? "操作" : "倍率 / 操作"}</span>
           </div>
 
           {bets.length === 0 ? (
@@ -101,29 +106,31 @@ export function CurrentBetSummaryCard({
 
                   {/* 右侧：倍率调控 + 删除 */}
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-[#dfeaff]/60 rounded-full px-2 py-0.5 border border-[#c9dbfc]">
-                      <button
-                        type="button"
-                        onClick={() => updateBetMultiplier(bet.id, bet.multiplier - 1)}
-                        disabled={bet.multiplier <= 1}
-                        className="text-[14px] font-bold text-[#163300] hover:text-black disabled:opacity-30 px-1 cursor-pointer"
-                        title="减倍"
-                      >
-                        −
-                      </button>
-                      <span className="font-mono font-bold text-[13px] text-[#163300] min-w-[28px] text-center">
-                        {bet.multiplier}x
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => updateBetMultiplier(bet.id, bet.multiplier + 1)}
-                        disabled={bet.multiplier >= 10000}
-                        className="text-[14px] font-bold text-[#008cff] hover:text-blue-700 disabled:opacity-30 px-1 cursor-pointer"
-                        title="加倍"
-                      >
-                        +
-                      </button>
-                    </div>
+                    {!hideMultiplier && (
+                      <div className="flex items-center bg-[#dfeaff]/60 rounded-full px-2 py-0.5 border border-[#c9dbfc]">
+                        <button
+                          type="button"
+                          onClick={() => updateBetMultiplier(bet.id, bet.multiplier - 1)}
+                          disabled={bet.multiplier <= 1}
+                          className="text-[14px] font-bold text-[#163300] hover:text-black disabled:opacity-30 px-1 cursor-pointer"
+                          title="减倍"
+                        >
+                          −
+                        </button>
+                        <span className="font-mono font-bold text-[13px] text-[#163300] min-w-[28px] text-center">
+                          {bet.multiplier}x
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateBetMultiplier(bet.id, bet.multiplier + 1)}
+                          disabled={bet.multiplier >= 10000}
+                          className="text-[14px] font-bold text-[#008cff] hover:text-blue-700 disabled:opacity-30 px-1 cursor-pointer"
+                          title="加倍"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => removeBet(bet.id)}
@@ -145,13 +152,17 @@ export function CurrentBetSummaryCard({
       <div className="flex flex-col gap-4 pt-3 border-t border-[#f0f2f5]">
         <div className="flex flex-col gap-2 text-[14px]">
           <div className="flex items-center justify-between text-[#64748b]">
-            <span>总注数</span>
-            <span className="font-semibold text-[#0f172a] font-mono">{totalTickets} 注</span>
+            <span>{hideMultiplier ? "总张数" : "总注数"}</span>
+            <span className="font-semibold text-[#0f172a] font-mono">
+              {totalTickets} {hideMultiplier ? "张" : "注"}
+            </span>
           </div>
-          <div className="flex items-center justify-between text-[#64748b]">
-            <span>累计总倍数</span>
-            <span className="font-semibold text-[#0f172a] font-mono">{totalMultiplier} 倍</span>
-          </div>
+          {!hideMultiplier && (
+            <div className="flex items-center justify-between text-[#64748b]">
+              <span>累计总倍数</span>
+              <span className="font-semibold text-[#0f172a] font-mono">{totalMultiplier} 倍</span>
+            </div>
+          )}
           <div className="flex items-center justify-between pt-1 border-t border-gray-100">
             <span className="text-[16px] font-extrabold text-[#0f172a]">预计支付</span>
             <div className="flex items-baseline gap-1">

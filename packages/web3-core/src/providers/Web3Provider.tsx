@@ -14,7 +14,7 @@ import {
   phantomWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { createConfig, http, WagmiProvider, createStorage, cookieStorage } from 'wagmi';
-import { mainnet, polygon, arbitrum, sepolia } from 'wagmi/chains';
+import { polygon } from 'wagmi/chains';
 
 const queryClient = new QueryClient();
 
@@ -62,17 +62,14 @@ export function Web3Provider({ privyAppId, zeroDevProjectId, children }: Web3Pro
     );
 
     return createConfig({
-      chains: [mainnet, polygon, arbitrum, sepolia],
+      chains: [polygon],
       connectors,
       ssr: true,
       storage: createStorage({
         storage: cookieStorage,
       }),
       transports: {
-        [mainnet.id]: http(),
-        [polygon.id]: http(),
-        [arbitrum.id]: http(),
-        [sepolia.id]: http(),
+        [polygon.id]: http("https://polygon.drpc.org"),
       },
     });
   }, [mounted]);
@@ -85,6 +82,8 @@ export function Web3Provider({ privyAppId, zeroDevProjectId, children }: Web3Pro
           <PrivyProvider
             appId={privyAppId}
             config={{
+              defaultChain: polygon,
+              supportedChains: [polygon],
               loginMethods: ["email", "wallet", "google", "apple", "twitter"],
               appearance: {
                 theme: "dark",
@@ -113,6 +112,8 @@ export function Web3Provider({ privyAppId, zeroDevProjectId, children }: Web3Pro
             <PrivyProvider
               appId={privyAppId}
               config={{
+                defaultChain: polygon,
+                supportedChains: [polygon],
                 loginMethods: ["email", "wallet", "google", "apple", "twitter"],
                 appearance: {
                   theme: "dark",

@@ -22,3 +22,4 @@ export * from "./views/world/components/RulesTabContent";
 // Configs & ABIs
 export * from "./config/addresses";
 export * from "./config/abis/Lottery";
+export * from "./config/abis";

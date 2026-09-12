@@ -17,16 +17,18 @@ import { RulesTabContent } from "./components/RulesTabContent";
 import { useWorldLottoState } from "../../hooks/useWorldLottoState";
 import { useCountdown } from "../../hooks/useCountdown";
 import { useWorldLottoPurchase } from "../../hooks/useWorldLottoPurchase";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, parseUnits, type Hex } from "viem";
 import { toast } from "sonner";
 import { useZeroDev } from "@wf-platform/web3-core";
 import { useWeb3Action } from "@wf-platform/hooks";
 import { unifiedLedgerV4Abi } from "../../config/abis/unifiedLedgerV4Abi";
 import { lotto7UmaRoundsAbi } from "../../config/abis/lotto7UmaRoundsAbi";
 
-// Force Next.js HMR invalidation
+export interface LotteryWorldViewProps {
+  partnerCode?: Hex;
+}
 
-export function LotteryWorldView() {
+export function LotteryWorldView({ partnerCode }: LotteryWorldViewProps = {}) {
   const {
     activeTab,
     setActiveTab,
@@ -58,7 +60,7 @@ export function LotteryWorldView() {
     refetchAll,
   } = useWorldLottoState();
 
-  const { executePurchase, isWriting, isConfirming } = useWorldLottoPurchase();
+  const { executePurchase, isWriting, isConfirming } = useWorldLottoPurchase({ partnerCode });
   const { execute: executeWithWeb3Action, isPending: isActionPending } = useWeb3Action({
     abis: [unifiedLedgerV4Abi, lotto7UmaRoundsAbi],
     successMessage: "投注交易已成功提交并确认！",

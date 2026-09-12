@@ -20,8 +20,12 @@ const serverEnvSchema = z.object({
   ALCHEMY_API_KEY: z.string().optional(),
   WALLETCONNECT_PROJECT_ID: z.string().optional(),
 
-  // Third-Party Services
+  // Third-Party Services & Partner Config
   LOTTERY_API_URL: z.string().url().default("https://wf.vip/backend/api/v1"),
+  PARTNER_CODE: z
+    .string()
+    .min(1, "PARTNER_CODE 不能为空")
+    .startsWith("0x", "PARTNER_CODE 必须是 0x 开头的十六进制字符串"),
 
   // Server Secrets (Never exposed to the client)
   SESSION_SECRET: z.string().optional(),
@@ -39,6 +43,7 @@ export function getServerEnv(): ServerEnv {
     NODE_ENV: process.env.NODE_ENV,
     NEXT_API_BASE_URL: process.env.NEXT_API_BASE_URL,
     LOTTERY_API_URL: process.env.LOTTERY_API_URL,
+    PARTNER_CODE: process.env.PARTNER_CODE,
     CHAIN_ID: process.env.CHAIN_ID,
     CHAIN_RPC_URL: process.env.CHAIN_RPC_URL,
     USDC_ADDRESS: process.env.USDC_ADDRESS,
