@@ -18,6 +18,10 @@ export function ConfigProvider({
       apiClient.setEndpoints({
         default: config.NEXT_API_BASE_URL || "",
         lottery: config.LOTTERY_API_URL || "",
+        // 临时使用 dat-dapp 后端（充值/提现配置），待 wf 自有接口上线后移除
+        dat: config.DAT_DAPP_API_BASE || "",
+        // 跨链 Relay API
+        relay: config.RELAY_API_URL || "",
       });
     }
   }, [config]);

@@ -17,10 +17,14 @@ import { QuickAccessGrid } from "./components/QuickAccessGrid";
 import { ProfileTabs } from "./components/ProfileTabs";
 import { AssetDetailTable } from "./components/AssetDetailTable";
 import { TransferModal } from "./components/TransferModal";
+import { DepositModal } from "./components/DepositModal";
+import { WithdrawModal } from "./components/WithdrawModal";
 
 export function ProfileView() {
   const [activeTab, setActiveTab] = useState("assets");
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   const { aaAddress, kernelClient } = useZeroDev();
 
@@ -93,6 +97,8 @@ export function ProfileView() {
           <div className="block lg:hidden">
             <AccountActionButtons
               onOpenTransfer={() => setIsTransferOpen(true)}
+              onOpenDeposit={() => setIsDepositOpen(true)}
+              onOpenWithdraw={() => setIsWithdrawOpen(true)}
             />
           </div>
 
@@ -128,6 +134,19 @@ export function ProfileView() {
         onWithdraw={handleWithdrawTransfer}
         isDepositing={isDepositing}
         isWithdrawing={isWithdrawing}
+      />
+
+      {/* 跨链充值弹窗 */}
+      <DepositModal
+        open={isDepositOpen}
+        onClose={() => setIsDepositOpen(false)}
+        onSuccess={() => setIsDepositOpen(false)}
+      />
+
+      {/* 跨链提现弹窗 */}
+      <WithdrawModal
+        open={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
       />
 
       <style jsx>{`

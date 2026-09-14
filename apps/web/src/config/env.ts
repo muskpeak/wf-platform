@@ -22,6 +22,10 @@ const serverEnvSchema = z.object({
 
   // Third-Party Services & Partner Config
   LOTTERY_API_URL: z.string().url().default("https://wf.vip/backend/api/v1"),
+  // 临时借用 dat-dapp 后端的充值/提现配置接口，待 wf 自有接口上线后替换
+  DAT_DAPP_API_BASE: z.string().url().default("https://api.dat.finance"),
+  // 跨链 Relay API（Relay.link）
+  RELAY_API_URL: z.string().url().default("https://api.relay.link"),
   PARTNER_CODE: z
     .string()
     .min(1, "PARTNER_CODE 不能为空")
@@ -43,6 +47,8 @@ export function getServerEnv(): ServerEnv {
     NODE_ENV: process.env.NODE_ENV,
     NEXT_API_BASE_URL: process.env.NEXT_API_BASE_URL,
     LOTTERY_API_URL: process.env.LOTTERY_API_URL,
+    DAT_DAPP_API_BASE: process.env.DAT_DAPP_API_BASE,
+    RELAY_API_URL: process.env.RELAY_API_URL,
     PARTNER_CODE: process.env.PARTNER_CODE,
     CHAIN_ID: process.env.CHAIN_ID,
     CHAIN_RPC_URL: process.env.CHAIN_RPC_URL,
