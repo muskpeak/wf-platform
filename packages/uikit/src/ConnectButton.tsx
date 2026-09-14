@@ -12,9 +12,11 @@ import { UserMenuContent, UserMenuModal } from './components/Modal'
 export interface ConnectButtonProps {
   zeroDevProjectId: string
   balance?: string | number
+  onNavigate?: (path: string) => void
+  onAction?: (actionId: string) => void
 }
 
-export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonProps) {
+export function ConnectButton({ zeroDevProjectId, balance = 0, onNavigate, onAction }: ConnectButtonProps) {
   const [menuOpen, setMenuOpen] = React.useState(false)
   const [isClient, setIsClient] = React.useState(false)
 
@@ -139,7 +141,7 @@ export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonPr
 
             <div className="hidden lg:block absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 origin-top-right">
               <div className="w-[230px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[16px] p-4 shadow-xl">
-                <UserMenuContent address={displayAddress} onLogout={handleLogout} />
+                <UserMenuContent address={displayAddress} onLogout={handleLogout} onNavigate={onNavigate} onAction={onAction} />
               </div>
             </div>
           </div>
@@ -150,6 +152,8 @@ export function ConnectButton({ zeroDevProjectId, balance = 0 }: ConnectButtonPr
           onOpenChange={setMenuOpen}
           address={displayAddress}
           onLogout={handleLogout}
+          onNavigate={onNavigate}
+          onAction={onAction}
         />
       </>
     )

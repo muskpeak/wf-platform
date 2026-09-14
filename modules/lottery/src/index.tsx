@@ -6,6 +6,7 @@ export * from "./views/3d/Lottery3DView";
 export * from "./components/LottoTabs";
 export * from "./components/history/LotteryHistoryView";
 export * from "./components/funding/LotteryFundingPanel";
+export * from "./hooks/useLotteryFunding";
 
 // World Lotto Game View exports
 export * from "./views/world/store/useWorldLottoStore";

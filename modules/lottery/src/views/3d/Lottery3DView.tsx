@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { use3DLottoStore } from "./store/use3DLottoStore";
 import { LottoTabs } from "../../components/LottoTabs";
+import { MyTickets3DTabContent } from "./components/MyTickets3DTabContent";
 import { IssueStatusStrip } from "../../components/common/IssueStatusStrip";
 import { NumberPickerCard, LOTTO_3D_SLOTS } from "../../components/common/NumberPickerCard";
 import { CurrentBetSummaryCard } from "../../components/common/CurrentBetSummaryCard";
@@ -239,9 +240,7 @@ export function Lottery3DView({ partnerCode }: Lottery3DViewProps = {}) {
               transition={{ duration: 0.18 }}
               className="flex flex-col gap-4 w-full"
             >
-              <div className="flex items-center justify-center min-h-[200px] text-[#9aa6b2] text-[14px]">
-                历史投注记录（待接入）
-              </div>
+              <MyTickets3DTabContent />
             </motion.div>
           )}
 

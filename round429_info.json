@@ -1,0 +1,19 @@
+{
+  "roundId": "429",
+  "status": "Settled",
+  "salesOpenTime": "1789374000",
+  "salesCloseTime": "1789375020",
+  "drawDeadline": "1789375200",
+  "totalSales": "20000000",
+  "totalTickets": "20",
+  "winningNumber": 113,
+  "prizePool": "10000000",
+  "prize1PerUnit": "0",
+  "prize2PerUnit": "0",
+  "prize3PerUnit": "2000000",
+  "winUnits1": "0",
+  "winUnits2": "0",
+  "winUnits3": "1",
+  "updatedAtBlock": "93780007",
+  "updatedAtTimestamp": "1789375044"
+}

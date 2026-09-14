@@ -5,6 +5,7 @@ const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/views/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/uikit/src/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/games-polymarket/src/**/*.{js,ts,jsx,tsx,mdx}",

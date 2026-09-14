@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { BetOrderRecord, HistoryStats } from "./types";
 import { HistoryPagination } from "./HistoryPagination";
+import { RotateCcw, PackageOpen } from "lucide-react";
+import { ResponsiveTable, ResponsiveTableSkeleton, Empty } from "@wf-platform/uikit";
 
 interface BetOrdersSectionProps {
   ballCount?: number;
@@ -10,58 +12,96 @@ interface BetOrdersSectionProps {
   currentIssue?: string;
   stats?: HistoryStats;
   orders?: BetOrderRecord[];
+  onClaim?: (recordId: string) => void;
+  onRefund?: (recordId: string) => void;
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  onPageChange?: (page: number) => void;
+  loading?: boolean;
 }
 
 export function BetOrdersSection({
   ballCount = 7,
-  currency = "USDT",
-  currentIssue = "2450",
+  currency = "WUSD",
+  currentIssue = "104191",
   stats,
   orders: propOrders,
+  onClaim,
+  onRefund,
+  page = 1,
+  pageSize = 10,
+  total = 0,
+  onPageChange,
+  loading = false,
 }: BetOrdersSectionProps) {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   // Default mock orders matching Figma design (supports 7 digits for World, 3 digits for 3D)
   const defaultOrders: BetOrderRecord[] = [
     {
       id: "1",
       issue: "#1996",
+      ticketId: "93",
       numbers: ballCount === 3 ? "775" : "7753920",
       multiplier: 61,
       amount: `100${currency}`,
       time: "04/13 09:43",
       status: "待开奖",
       isWin: false,
+      prize: "0 USD",
+      netPnL: "0 USD",
+      isNetNegative: false,
+      canClaim: false,
+      winningNumber: "—",
     },
     {
       id: "2",
       issue: "#1996",
+      ticketId: "94",
       numbers: ballCount === 3 ? "392" : "3928104",
       multiplier: 61,
       amount: `100${currency}`,
       time: "04/13 09:43",
       status: "待开奖",
       isWin: false,
+      prize: "0 USD",
+      netPnL: "0 USD",
+      isNetNegative: false,
+      canClaim: false,
+      winningNumber: "—",
     },
     {
       id: "3",
       issue: "#1996",
+      ticketId: "95",
       numbers: ballCount === 3 ? "390" : "3901245",
       multiplier: 61,
       amount: `100${currency}`,
       time: "04/13 09:43",
       status: "待开奖",
       isWin: false,
+      prize: "0 USD",
+      netPnL: "0 USD",
+      isNetNegative: false,
+      canClaim: false,
+      winningNumber: "—",
     },
     {
       id: "4",
       issue: "#2032",
+      ticketId: "96",
       numbers: ballCount === 3 ? "770" : "7709812",
       multiplier: 61,
       amount: `100${currency}`,
       time: "04/13 09:43",
       status: "已中奖",
       isWin: true,
+      prize: "1000 USD",
+      netPnL: "900 USD",
+      isNetNegative: false,
+      canClaim: true,
+      winningNumber: ballCount === 3 ? "770" : "7709812",
     },
   ];
 
@@ -137,74 +177,254 @@ export function BetOrdersSection({
             投注订单
           </h3>
           <p className="text-[11px] sm:text-[12px] text-[#707070]">
-            表格适合 PC：期号、号码、金额、状态、操作一屏可比对。
+            历史订单都在这里
           </p>
         </div>
 
         {/* Orders Table Container */}
-        <div className="w-full rounded-[18px] sm:rounded-[20px] border border-[#e7ebf4]/70 overflow-hidden">
-          <table className="w-full table-fixed text-left border-collapse">
-            <thead>
-              <tr className="bg-[#e7ebf4] h-[44px] text-[#303030] text-[11px] sm:text-[12px] font-bold">
-                <th className="w-[17%] px-2 sm:px-3 py-2">期号</th>
-                <th className="w-[24%] px-1 sm:px-2 py-2 text-center">投注号码</th>
-                <th className="w-[11%] px-1 py-2 text-center">倍数</th>
-                <th className="w-[19%] px-1 sm:px-2 py-2 text-center">金额</th>
-                <th className="w-[18%] px-1 py-2 text-center">出票时间</th>
-                <th className="w-[11%] px-1 sm:px-2 py-2 text-right">状态</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#e7ebf4]/60 text-[11px] sm:text-[12px]">
-              {orders.map((order) => {
+        <ResponsiveTable<BetOrderRecord>
+          data={orders || []}
+          loading={loading}
+          loadingState={<ResponsiveTableSkeleton pcColumns={6} pcRows={10} mobileRows={10} />}
+          emptyState={
+            <Empty 
+              icon={<PackageOpen className="w-12 h-12 stroke-[1]" />}
+              title="暂无下注记录"
+              description="您还没有相关的下注历史，快去体验一下吧！"
+            />
+          }
+          rowKey="id"
+            columns={[
+            {
+              key: "issue",
+              header: "期号",
+              mobilePrimary: true,
+              mobileOrder: 1,
+              className: "font-medium",
+              render: (order: BetOrderRecord) => {
                 const isWin = order.isWin || order.status === "已中奖";
-                const rowTextColor = isWin ? "text-[#008cff]" : "text-[#4b5767]";
+                const isCancelled = order.status === "已取消";
+                const rowTextColor = isWin ? "text-[#008cff]" : isCancelled ? "text-[#a1a1aa]" : "text-[#4b5767]";
+                return <span className={rowTextColor}>{order.issue}</span>;
+              }
+            },
+            {
+              key: "ticketId",
+              header: "票据",
+              mobilePrimary: true,
+              mobileOrder: 2,
+              className: "text-center md:text-left",
+              headerClassName: "text-center md:text-left",
+              render: (order: BetOrderRecord) => {
+                const isWin = order.isWin || order.status === "已中奖";
+                const isCancelled = order.status === "已取消";
+                const rowTextColor = isWin ? "text-[#008cff]" : isCancelled ? "text-[#a1a1aa]" : "text-[#4b5767]";
+                return <span className={`font-mono font-bold tracking-tight text-[11px] sm:text-[12px] ${rowTextColor}`}>#{order.ticketId || order.id}</span>;
+              }
+            },
+            {
+              key: "numbers",
+              header: "投注号码",
+              mobileOrder: 3,
+              className: "text-center md:text-left",
+              headerClassName: "text-center md:text-left",
+              render: (order: BetOrderRecord) => {
+                const isWin = order.isWin || order.status === "已中奖";
+                const isCancelled = order.status === "已取消";
+                const rowTextColor = isWin ? "text-[#008cff]" : isCancelled ? "text-[#a1a1aa]" : "text-[#4b5767]";
+                return <span className={`font-mono font-bold tracking-tight text-[11px] sm:text-[12px] ${rowTextColor}`}>{order.numbers}</span>;
+              }
+            },
+            {
+              key: "winningNumber",
+              header: "开奖号码",
+              mobileOrder: 4,
+              className: "text-center md:text-left",
+              headerClassName: "text-center md:text-left",
+              render: (order: BetOrderRecord) => {
+                const isWin = order.isWin || order.status === "已中奖";
+                const isCancelled = order.status === "已取消";
+                const rowTextColor = isWin ? "text-[#008cff]" : isCancelled ? "text-[#a1a1aa]" : "text-[#4b5767]";
+                return <span className={`font-mono font-bold tracking-tight text-[11px] sm:text-[12px] ${rowTextColor}`}>{order.winningNumber || "—"}</span>;
+              }
+            },
+            ...(ballCount === 7 ? [{
+              key: "multiplier",
+              header: "倍数",
+              mobileOrder: 5,
+              className: "text-center",
+              headerClassName: "text-center",
+              render: (order: BetOrderRecord) => {
+                const isWin = order.isWin || order.status === "已中奖";
+                const isCancelled = order.status === "已取消";
+                const rowTextColor = isWin ? "text-[#008cff]" : isCancelled ? "text-[#a1a1aa]" : "text-[#4b5767]";
+                return <span className={rowTextColor}>{order.multiplier}x</span>;
+              }
+            }] : []),
+
+            {
+              key: "prize",
+              header: "奖金",
+              mobileOrder: 6,
+              className: "text-center",
+              headerClassName: "text-center",
+              render: (order: BetOrderRecord) => {
+                const isWin = Boolean(order.isWin || order.status === "已中奖" || order.status === "中奖 · 待领取");
+                const isCancelled = order.status === "已取消";
+                const rowTextColor = isWin ? "text-[#008cff] font-bold" : isCancelled ? "text-[#a1a1aa]" : "text-[#4b5767]";
+                return <span className={`font-mono text-[10.5px] sm:text-[12px] ${rowTextColor}`}>{order.prize || "0 USD"}</span>;
+              }
+            },
+            {
+              key: "time",
+              header: "出票时间",
+              mobileOrder: 8,
+              className: "text-center",
+              headerClassName: "text-center",
+              render: (order: BetOrderRecord) => {
+                const isWin = Boolean(order.isWin || order.status === "已中奖" || order.status === "中奖 · 待领取");
+                const isCancelled = order.status === "已取消";
+                const rowTextColor = isWin ? "text-[#008cff]" : isCancelled ? "text-[#a1a1aa]" : "text-[#4b5767]";
+                return <span className={`text-[9.5px] sm:text-[10.5px] ${rowTextColor}`}>{order.time}</span>;
+              }
+            },
+            {
+              key: "status",
+              header: "状态",
+              mobileOrder: 9,
+              className: "text-center",
+              headerClassName: "text-center",
+              render: (order: BetOrderRecord) => {
+                const s = order.status;
+                let bg = "bg-slate-50";
+                let border = "border-slate-200";
+                let text = "text-slate-500";
+                let dot = "bg-slate-400";
+                
+                if (s === "中奖 · 待结算") {
+                  bg = "bg-emerald-50";
+                  border = "border-emerald-200";
+                  text = "text-emerald-600";
+                  dot = "bg-emerald-500";
+                } else if (s === "中奖 · 待领取" || s === "已中奖") {
+                  bg = "bg-cyan-50";
+                  border = "border-cyan-200";
+                  text = "text-cyan-600";
+                  dot = "bg-cyan-500";
+                } else if (s === "已领奖" || s === "已领取") {
+                  bg = "bg-blue-50";
+                  border = "border-blue-200";
+                  text = "text-[#008cff]";
+                  dot = "bg-[#008cff]";
+                } else if (s === "待开奖") {
+                  bg = "bg-purple-50";
+                  border = "border-purple-200";
+                  text = "text-purple-600";
+                  dot = "bg-purple-500";
+                } else if (s === "待结算") {
+                  bg = "bg-amber-50";
+                  border = "border-amber-200";
+                  text = "text-amber-600";
+                  dot = "bg-amber-500";
+                } else if (s === "已取消") {
+                  bg = "bg-rose-50";
+                  border = "border-rose-200";
+                  text = "text-rose-600";
+                  dot = "bg-rose-500";
+                } else if (s === "未中奖 · 待结算" || s === "未中奖" || s === "已退款") {
+                  bg = "bg-slate-50";
+                  border = "border-slate-200";
+                  text = "text-slate-500";
+                  dot = "bg-slate-400";
+                }
 
                 return (
-                  <tr
-                    key={order.id}
-                    className={`hover:bg-[#fbfcfe] transition-colors ${
-                      isWin ? "bg-[#008cff]/4" : ""
-                    }`}
-                  >
-                    <td className={`px-2 sm:px-3 py-3 font-medium whitespace-nowrap ${rowTextColor}`}>
-                      {order.issue}
-                    </td>
-                    <td className={`px-1 sm:px-2 py-3 text-center font-mono font-bold tracking-tight whitespace-nowrap text-[11px] sm:text-[12px] ${rowTextColor}`}>
-                      {order.numbers}
-                    </td>
-                    <td className={`px-1 py-3 text-center whitespace-nowrap ${rowTextColor}`}>
-                      {order.multiplier}x
-                    </td>
-                    <td className={`px-1 sm:px-2 py-3 text-center font-mono whitespace-nowrap text-[10.5px] sm:text-[11.5px] ${rowTextColor}`}>
-                      {order.amount}
-                    </td>
-                    <td className={`px-1 py-3 text-center whitespace-nowrap text-[9.5px] sm:text-[10.5px] ${rowTextColor}`}>
-                      {order.time}
-                    </td>
-                    <td className="px-1 sm:px-2 py-3 text-right font-medium whitespace-nowrap">
-                      <span
-                        className={
-                          isWin ? "text-[#008cff] font-bold" : "text-[#71717a]"
-                        }
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                  </tr>
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${bg} ${border}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+                    <span className={`text-[10.5px] font-medium whitespace-nowrap ${text}`}>
+                      {s}
+                    </span>
+                  </div>
                 );
-              })}
-            </tbody>
-          </table>
-        </div>
+              }
+            },
+            {
+              key: "action",
+              header: "操作",
+              mobileOrder: 10,
+              className: "text-right md:w-[100px]",
+              headerClassName: "text-right",
+              render: (order: BetOrderRecord) => {
+                if (order.canRefund) {
+                  return (
+                    <button
+                      onClick={async () => {
+                        setProcessingId(`refund-${order.id}`);
+                        try {
+                          await onRefund?.(order.id);
+                        } finally {
+                          setProcessingId(null);
+                        }
+                      }}
+                      disabled={processingId === `refund-${order.id}`}
+                      className="px-3 py-1 bg-white hover:bg-gray-50 disabled:opacity-50 text-gray-700 border border-gray-300 text-[11px] font-medium rounded-full transition-colors inline-flex items-center justify-center gap-1 active:scale-95 w-full md:w-auto md:ml-auto cursor-pointer"
+                      title="申请退款"
+                    >
+                      <RotateCcw className={`w-3 h-3 ${processingId === `refund-${order.id}` ? "animate-spin" : ""}`} />
+                      <span>{processingId === `refund-${order.id}` ? "处理中..." : "申请退款"}</span>
+                    </button>
+                  );
+                } else if (order.canClaim) {
+                  return (
+                    <button
+                      onClick={async () => {
+                        setProcessingId(`claim-${order.id}`);
+                        try {
+                          await onClaim?.(order.id);
+                        } finally {
+                          setProcessingId(null);
+                        }
+                      }}
+                      disabled={processingId === `claim-${order.id}`}
+                      className="px-3.5 py-1 bg-[#008cff] hover:bg-[#0070cc] disabled:opacity-50 disabled:cursor-not-allowed text-white text-[11px] font-medium rounded-full transition-colors inline-flex items-center justify-center gap-1 active:scale-95 w-full md:w-auto md:ml-auto cursor-pointer min-w-[72px]"
+                    >
+                      {processingId === `claim-${order.id}` ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>领取中...</span>
+                        </>
+                      ) : (
+                        "领取奖金"
+                      )}
+                    </button>
+                  );
+                } else if (order.isClaimed || order.status === "已领取" || order.status === "已领奖") {
+                  return <span className="text-[#008cff] text-[11px] font-medium w-full block text-right">已领取</span>;
+                } else if (order.isRefunded || order.status === "已退款") {
+                  return <span className="text-[#a1a1aa] text-[11px] font-medium w-full block text-right">已退款</span>;
+                } else {
+                  return <span className="text-[#d4d4d8] w-full block text-right">—</span>;
+                }
+              }
+            }
+          ]}
+          emptyText="暂无历史投注记录"
+          rowClassName={(order: BetOrderRecord) => {
+            const isWin = Boolean(order.isWin || order.status === "已中奖" || order.status === "中奖 · 待领取");
+            return isWin ? "bg-[#008cff]/5" : "";
+          }}
+        />
 
         {/* Pagination */}
-        <HistoryPagination
-          totalCount={1996}
-          currentPage={currentPage}
-          totalPages={200}
-          onPrev={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          onNext={() => setCurrentPage((p) => Math.min(200, p + 1))}
-        />
+        {total > 0 && (
+          <HistoryPagination
+            totalCount={total}
+            currentPage={page}
+            totalPages={Math.ceil(total / pageSize)}
+            onPrev={() => onPageChange?.(Math.max(1, page - 1))}
+            onNext={() => onPageChange?.(Math.min(Math.ceil(total / pageSize), page + 1))}
+          />
+        )}
       </div>
     </div>
   );

@@ -3,12 +3,15 @@
 import React, { useState } from "react";
 import { ClaimRecord } from "./types";
 import { HistoryPagination } from "./HistoryPagination";
+import { Skeleton, Empty } from "@wf-platform/uikit";
+import { PackageOpen } from "lucide-react";
 
 interface ClaimRecordsSectionProps {
   ballCount?: number;
   currency?: string;
   claims?: ClaimRecord[];
   onClaim?: (recordId: string) => void;
+  loading?: boolean;
 }
 
 export function ClaimRecordsSection({
@@ -16,6 +19,7 @@ export function ClaimRecordsSection({
   currency = "USDT",
   claims: propClaims,
   onClaim,
+  loading = false,
 }: ClaimRecordsSectionProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -52,17 +56,46 @@ export function ClaimRecordsSection({
 
   return (
     <div className="flex flex-col gap-4 w-full">
+      {/* Loading State */}
+      {loading && (
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <div
+              key={`skeleton-${idx}`}
+              className="bg-white border border-[#e7ebf4]/70 rounded-[22px] sm:rounded-[26px] p-4 sm:p-5 shadow-xs flex flex-col gap-3.5"
+            >
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-12 w-full rounded-[18px]" />
+              <div className="flex items-center justify-between pt-1">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-9 w-24 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && claimList.length === 0 && (
+        <Empty 
+          icon={<PackageOpen className="w-12 h-12 stroke-[1]" />}
+          title="暂无领奖记录"
+          description="您还没有相关的领奖历史"
+        />
+      )}
+
       {/* List of Claim Cards */}
-      <div className="flex flex-col gap-4">
-        {claimList.map((record) => (
-          <div
-            key={record.id}
-            className="bg-white border border-[#e7ebf4]/70 rounded-[22px] sm:rounded-[26px] p-4 sm:p-5 shadow-xs flex flex-col gap-3.5"
-          >
-            {/* Card Title */}
-            <h4 className="font-bold text-[18px] text-[#0c0d10] leading-none">
-              {record.issue}
-            </h4>
+      {!loading && claimList.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {claimList.map((record) => (
+            <div
+              key={record.id}
+              className="bg-white border border-[#e7ebf4]/70 rounded-[22px] sm:rounded-[26px] p-4 sm:p-5 shadow-xs flex flex-col gap-3.5"
+            >
+              {/* Card Title */}
+              <h4 className="font-bold text-[18px] text-[#0c0d10] leading-none">
+                {record.issue}
+              </h4>
 
             {/* Ball Pill Capsule Container */}
             <div className="bg-[#edf0f8] rounded-[18px] px-3.5 py-2.5 flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
@@ -110,6 +143,7 @@ export function ClaimRecordsSection({
           </div>
         ))}
       </div>
+      )}
 
       {/* Pagination */}
       <div className="bg-white border border-[#e7ebf4]/70 rounded-[20px] px-4 py-2 shadow-2xs">

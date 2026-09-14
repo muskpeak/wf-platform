@@ -58,8 +58,8 @@ export function useCountdown(
     ? `${days}天 ${hoursStr}:${minsStr}:${secsStr}`
     : `${hoursStr}:${minsStr}:${secsStr}`;
 
-  // 计算进度条：总时长 = 封盘时间 - 开盘时间（未设置开盘时间时，默认按标准单期 7 天 604800 秒）
-  const defaultDuration = 7 * 86400;
+  // 计算进度条：总时长 = 封盘时间 - 开盘时间（未设置开盘时间时，默认按标准最大等待 1 天 86400 秒）
+  const defaultDuration = 86400;
   const totalDuration = (openUnixSeconds && closeUnixSeconds > openUnixSeconds)
     ? (closeUnixSeconds - openUnixSeconds)
     : defaultDuration;

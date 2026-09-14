@@ -82,69 +82,71 @@ export function CurrentBetSummaryCard({
         <div className="h-px bg-[#f0f2f5] w-full" />
 
         {/* 2. 已选注列表 */}
-        <div className="flex flex-col gap-2 flex-1">
-          <div className="flex items-center justify-between text-[13px] font-bold text-[#4b5767] px-1">
+        <div className="flex flex-col gap-2 flex-1 min-h-[140px]">
+          <div className="flex items-center justify-between text-[13px] font-bold text-[#4b5767] px-1 shrink-0">
             <span>号码</span>
             <span>{hideMultiplier ? "操作" : "倍率 / 操作"}</span>
           </div>
 
-          {bets.length === 0 ? (
-            <div className="flex-1 min-h-[140px] flex items-center justify-center text-center text-[#9aa6b2] text-[13px] bg-[#fbfcfd] rounded-2xl border border-dashed border-gray-200 p-4">
-              暂无已选号码，请在左侧选号或点击"随机"生成
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
-              {bets.map((bet) => (
-                <div
-                  key={bet.id}
-                  className="flex items-center justify-between py-2 px-2.5 sm:px-3 rounded-xl bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
-                >
-                  {/* 号码 */}
-                  <div className="font-mono font-bold text-[18px] sm:text-[20px] tracking-[2px] text-[#163300]">
-                    {bet.numbers.join("")}
-                  </div>
+          <div className="relative flex-1">
+            {bets.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-center text-[#9aa6b2] text-[13px] bg-[#fbfcfd] rounded-2xl border border-dashed border-gray-200 p-4">
+                暂无已选号码，请在左侧选号或点击"随机"生成
+              </div>
+            ) : (
+              <div className="absolute inset-0 overflow-y-auto pr-1 flex flex-col gap-2">
+                {bets.map((bet) => (
+                  <div
+                    key={bet.id}
+                    className="flex items-center justify-between py-2 px-2.5 sm:px-3 rounded-xl bg-gray-50/80 hover:bg-gray-100/80 transition-colors shrink-0"
+                  >
+                    {/* 号码 */}
+                    <div className="font-mono font-bold text-[18px] sm:text-[20px] tracking-[2px] text-[#163300]">
+                      {bet.numbers.join("")}
+                    </div>
 
-                  {/* 右侧：倍率调控 + 删除 */}
-                  <div className="flex items-center gap-2">
-                    {!hideMultiplier && (
-                      <div className="flex items-center bg-[#dfeaff]/60 rounded-full px-2 py-0.5 border border-[#c9dbfc]">
-                        <button
-                          type="button"
-                          onClick={() => updateBetMultiplier(bet.id, bet.multiplier - 1)}
-                          disabled={bet.multiplier <= 1}
-                          className="text-[14px] font-bold text-[#163300] hover:text-black disabled:opacity-30 px-1 cursor-pointer"
-                          title="减倍"
-                        >
-                          −
-                        </button>
-                        <span className="font-mono font-bold text-[13px] text-[#163300] min-w-[28px] text-center">
-                          {bet.multiplier}x
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => updateBetMultiplier(bet.id, bet.multiplier + 1)}
-                          disabled={bet.multiplier >= 10000}
-                          className="text-[14px] font-bold text-[#008cff] hover:text-blue-700 disabled:opacity-30 px-1 cursor-pointer"
-                          title="加倍"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeBet(bet.id)}
-                      className="border border-[#8c8c8c]/50 hover:border-red-400 hover:text-red-500 text-[#64748b] text-[12px] px-2.5 py-1 rounded-full transition-colors active:scale-95 cursor-pointer flex items-center gap-1"
-                      title="删除此注"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>删除</span>
-                    </button>
+                    {/* 右侧：倍率调控 + 删除 */}
+                    <div className="flex items-center gap-2">
+                      {!hideMultiplier && (
+                        <div className="flex items-center bg-[#dfeaff]/60 rounded-full px-2 py-0.5 border border-[#c9dbfc]">
+                          <button
+                            type="button"
+                            onClick={() => updateBetMultiplier(bet.id, bet.multiplier - 1)}
+                            disabled={bet.multiplier <= 1}
+                            className="text-[14px] font-bold text-[#163300] hover:text-black disabled:opacity-30 px-1 cursor-pointer"
+                            title="减倍"
+                          >
+                            −
+                          </button>
+                          <span className="font-mono font-bold text-[13px] text-[#163300] min-w-[28px] text-center">
+                            {bet.multiplier}x
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateBetMultiplier(bet.id, bet.multiplier + 1)}
+                            disabled={bet.multiplier >= 10000}
+                            className="text-[14px] font-bold text-[#008cff] hover:text-blue-700 disabled:opacity-30 px-1 cursor-pointer"
+                            title="加倍"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeBet(bet.id)}
+                        className="border border-[#8c8c8c]/50 hover:border-red-400 hover:text-red-500 text-[#64748b] text-[12px] px-2.5 py-1 rounded-full transition-colors active:scale-95 cursor-pointer flex items-center gap-1"
+                        title="删除此注"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>删除</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

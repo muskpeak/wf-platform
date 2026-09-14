@@ -15,6 +15,7 @@ interface IssueStatusStripProps {
   statusText?: string;
   progressPercent?: number;
   currency?: string;
+  winningNumber?: string;
 }
 
 export function IssueStatusStrip({
@@ -29,6 +30,7 @@ export function IssueStatusStrip({
   statusText = "投注中",
   progressPercent = 33.5,
   currency = "WUSD",
+  winningNumber,
 }: IssueStatusStripProps) {
   // Format issue number cleanly: "第 2450 期" for PC, "2450 期" for mobile
   const rawIssueNumber = issueNo.replace(/[^0-9]/g, "") || "2450";
@@ -52,6 +54,7 @@ export function IssueStatusStrip({
           progressBar: "bg-gradient-to-r from-[#34d399] to-[#10B981]",
         };
       case "已封盘":
+      case "封盘待开奖":
         return {
           badge: "bg-[#fefce8] text-[#ca8a04] border border-[#fde047]",
           dot: "bg-[#FACC15]",
@@ -67,6 +70,14 @@ export function IssueStatusStrip({
           dot: "bg-[#4F46E5]",
           countdownText: "text-[#4F46E5]",
           progressBar: "bg-gradient-to-r from-[#818cf8] to-[#4F46E5]",
+        };
+      case "封盘操作已逾期":
+      case "断言被质疑":
+        return {
+          badge: "bg-[#fef2f2] text-[#ef4444] border border-[#fca5a5]",
+          dot: "bg-[#ef4444]",
+          countdownText: "text-[#ef4444]",
+          progressBar: "bg-gradient-to-r from-[#fca5a5] to-[#ef4444]",
         };
       case "已取消":
       default:
@@ -130,9 +141,15 @@ export function IssueStatusStrip({
         <div className="mt-5 flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-2">
-              <span className={`text-[15px] font-bold font-mono ${theme.countdownText}`}>
-                {countdown}
-              </span>
+              {winningNumber ? (
+                <span className="text-[20px] font-bold font-mono tracking-widest text-[#1a1a1a]">
+                  {winningNumber}
+                </span>
+              ) : (
+                <span className={`text-[15px] font-bold font-mono ${theme.countdownText}`}>
+                  {countdown}
+                </span>
+              )}
               <span className="text-[12px] text-[#767676] font-normal">
                 {countdownLabel}
               </span>
@@ -148,12 +165,14 @@ export function IssueStatusStrip({
           </div>
 
           {/* 动态主题色进度条 */}
-          <div className="w-full h-1.5 bg-[#f0f2f5] rounded-full overflow-hidden">
-            <div
-              className={`h-full ${theme.progressBar} rounded-full transition-all duration-300`}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+          {!winningNumber && (
+            <div className="w-full h-1.5 bg-[#f0f2f5] rounded-full overflow-hidden">
+              <div
+                className={`h-full ${theme.progressBar} rounded-full transition-all duration-300`}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -183,26 +202,36 @@ export function IssueStatusStrip({
         {/* 竖分割线 */}
         <div className="w-[1px] h-9 bg-[#eaedf0] mx-4 xl:mx-6" />
 
-        {/* 第 2 列: 倒计时 */}
+        {/* 第 2 列: 倒计时 / 开奖号码 */}
         <div className="flex flex-col justify-center">
           <span className="text-[12px] font-normal text-[#767676] leading-none">
             {countdownLabel}
           </span>
           <div className="flex items-baseline gap-2.5 mt-1.5">
-            <span className={`text-[18px] xl:text-[20px] font-bold font-mono whitespace-nowrap ${theme.countdownText}`}>
-              {countdown}
-            </span>
-            <span className="text-[11px] text-[#999999] whitespace-nowrap">
-              {countdownNote}
-            </span>
+            {winningNumber ? (
+              <span className="text-[20px] xl:text-[24px] font-bold font-mono text-[#1a1a1a] whitespace-nowrap tracking-widest">
+                {winningNumber}
+              </span>
+            ) : (
+              <span className={`text-[18px] xl:text-[20px] font-bold font-mono whitespace-nowrap ${theme.countdownText}`}>
+                {countdown}
+              </span>
+            )}
+            {countdownNote && countdownNote !== "—" && (
+              <span className="text-[11px] text-[#999999] whitespace-nowrap">
+                {countdownNote}
+              </span>
+            )}
           </div>
           {/* 动态主题色进度条 */}
-          <div className="w-full h-1.5 bg-[#f0f2f5] rounded-full overflow-hidden mt-1.5">
-            <div
-              className={`h-full ${theme.progressBar} rounded-full transition-all duration-300`}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+          {!winningNumber && (
+            <div className="w-full h-1.5 bg-[#f0f2f5] rounded-full overflow-hidden mt-1.5">
+              <div
+                className={`h-full ${theme.progressBar} rounded-full transition-all duration-300`}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          )}
         </div>
 
         {/* 竖分割线 */}

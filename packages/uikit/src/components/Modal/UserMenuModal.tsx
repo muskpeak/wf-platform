@@ -12,6 +12,7 @@ export interface UserMenuContentProps {
   address?: string;
   onLogout?: () => void;
   onNavigate?: (path: string) => void;
+  onAction?: (actionId: string) => void;
   onClose?: () => void;
 }
 
@@ -19,6 +20,7 @@ export function UserMenuContent({
   address = "0x95Cd...3Cbb",
   onLogout,
   onNavigate,
+  onAction,
   onClose,
 }: UserMenuContentProps) {
   const [copied, setCopied] = useState(false);
@@ -85,6 +87,7 @@ export function UserMenuContent({
               key={item.id}
               onClick={() => {
                 if (item.path && onNavigate) onNavigate(item.path);
+                if (!item.path && onAction) onAction(item.id);
                 if (onClose) onClose();
               }}
               className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#15151F] dark:text-gray-200 transition-colors text-left group/item"
@@ -189,6 +192,7 @@ export interface UserMenuModalProps {
   address?: string;
   onLogout?: () => void;
   onNavigate?: (path: string) => void;
+  onAction?: (actionId: string) => void;
 }
 
 export function UserMenuModal({
@@ -197,6 +201,7 @@ export function UserMenuModal({
   address,
   onLogout,
   onNavigate,
+  onAction,
 }: UserMenuModalProps) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
@@ -215,6 +220,7 @@ export function UserMenuModal({
         address={address}
         onLogout={onLogout}
         onNavigate={onNavigate}
+        onAction={onAction}
         onClose={() => onOpenChange(false)}
       />
     </ResponsiveModal>

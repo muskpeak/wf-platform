@@ -17,6 +17,12 @@ export function LotteryHistoryView({
   rewards,
   claims,
   onClaim,
+  onRefund,
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  loading,
   className = "",
 }: LotteryHistoryProps) {
   const [activeSubTab, setActiveSubTab] = useState<HistoryTabId>("orders");
@@ -37,6 +43,13 @@ export function LotteryHistoryView({
             currentIssue={currentIssue}
             stats={stats}
             orders={orders}
+            onClaim={onClaim}
+            onRefund={onRefund}
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={onPageChange}
+            loading={loading}
           />
         )}
 
@@ -45,6 +58,7 @@ export function LotteryHistoryView({
             ballCount={ballCount}
             currency={currency}
             rewards={rewards}
+            loading={loading}
           />
         )}
 
@@ -54,6 +68,7 @@ export function LotteryHistoryView({
             currency={currency}
             claims={claims}
             onClaim={onClaim}
+            loading={loading}
           />
         )}
       </div>

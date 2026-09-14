@@ -3,17 +3,21 @@
 import React, { useState } from "react";
 import { DrawRewardRecord } from "./types";
 import { HistoryPagination } from "./HistoryPagination";
+import { ResponsiveTable, ResponsiveTableSkeleton, Empty } from "@wf-platform/uikit";
+import { Trophy } from "lucide-react";
 
 interface DrawRewardsSectionProps {
   ballCount?: number;
   currency?: string;
   rewards?: DrawRewardRecord[];
+  loading?: boolean;
 }
 
 export function DrawRewardsSection({
   ballCount = 7,
   currency = "USDT",
   rewards: propRewards,
+  loading = false,
 }: DrawRewardsSectionProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -76,33 +80,50 @@ export function DrawRewardsSection({
       </div>
 
       {/* Inner Container */}
-      <div className="bg-[#e7ebf4] rounded-[22px] sm:rounded-[24px] p-3 sm:p-5 flex flex-col gap-2.5 overflow-x-auto">
-        {/* Table Header */}
-        <div className="grid grid-cols-5 gap-2 px-4 py-1 text-[12px] font-bold text-[#11181c] min-w-[480px]">
-          <div>期号</div>
-          <div className="text-center">中奖号码</div>
-          <div className="text-center">类型</div>
-          <div className="text-center">金额</div>
-          <div className="text-right">状态</div>
-        </div>
-
-        {/* Rows */}
-        <div className="flex flex-col gap-2 min-w-[480px]">
-          {rewards.map((row) => (
-            <div
-              key={row.id}
-              className="bg-[#e7ebf4] hover:bg-[#dfe4ef] border border-[#f3f4f8] rounded-[14px] px-4 py-3 grid grid-cols-5 gap-2 items-center text-[12px] transition-colors"
-            >
-              <div className="font-medium text-[#18181b]">{row.issue}</div>
-              <div className="text-center font-mono font-bold text-[#11181c] tracking-wider">
-                {row.winningNumbers}
-              </div>
-              <div className="text-center text-[#11181c]">{row.tier}</div>
-              <div className="text-center font-mono text-[#11181c]">{row.amount}</div>
-              <div className="text-right text-[#11181c]">{row.status}</div>
-            </div>
-          ))}
-        </div>
+      <div className="w-full">
+        <ResponsiveTable<DrawRewardRecord>
+          data={rewards}
+          loading={loading}
+          loadingState={<ResponsiveTableSkeleton pcColumns={5} pcRows={10} mobileRows={10} />}
+          emptyState={
+            <Empty
+              icon={<Trophy className="w-12 h-12 stroke-[1]" />}
+              title="暂无开奖数据"
+              description="目前还没有历史开奖数据"
+            />
+          }
+          rowKey="id"
+          columns={[
+            {
+              key: "issue",
+              header: "期号",
+              align: "left",
+              render: (value: any) => <span className="font-medium text-[#18181b]">{value as string}</span>,
+            },
+            {
+              key: "winningNumbers",
+              header: "中奖号码",
+              align: "center",
+              render: (value: any) => <span className="font-mono font-bold text-[#11181c] tracking-wider">{value as string}</span>,
+            },
+            {
+              key: "tier",
+              header: "类型",
+              align: "center",
+            },
+            {
+              key: "amount",
+              header: "金额",
+              align: "center",
+              render: (value: any) => <span className="font-mono">{value as string}</span>,
+            },
+            {
+              key: "status",
+              header: "状态",
+              align: "right",
+            },
+          ]}
+        />
       </div>
 
       {/* Pagination */}

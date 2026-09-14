@@ -93,54 +93,68 @@ export function LotteryWorldView({ partnerCode }: LotteryWorldViewProps = {}) {
   // 判断是否处于“即将开售”状态 (now < salesOpenTime)
   const isUpcoming = Boolean(salesOpenTime && now < salesOpenTime && !isCancelled && !isSalesClosedRaw);
 
-  // 目标倒计时时间与基准时间：如果是即将开售，目标时间为 salesOpenTime；如果是投注中，目标时间为 salesCloseTime
-  const targetTime = isUpcoming ? salesOpenTime : salesCloseTime;
-  const baseOpenTime = isUpcoming ? undefined : salesOpenTime;
-
-  const { formatted: countdownStr, progressPercent, isEnded } = useCountdown(targetTime, baseOpenTime);
-
-  // 1. 投注状态 (statusText & issueNote)
-  // 2. 倒计时对应的语言提示 (countdownLabel)
-  // 3. 倒计时右边的时间，是该状态的对应时间 (countdownNote)
   let statusText = "投注中";
   let issueNote = "投注进行中";
   let countdownLabel = "封盘倒计时";
   let activeEventTime = salesCloseTime;
+  let baseTimeForProgress: number | undefined = salesOpenTime;
+
+  let winningNumberStr: string | undefined = undefined;
+  if (drawStatus === 3 && roundData?.winningNumber !== undefined) {
+    winningNumberStr = String(roundData.winningNumber).padStart(7, "0");
+  }
 
   if (isCancelled) {
     statusText = "已取消";
     issueNote = "本期已取消";
     countdownLabel = "状态";
     activeEventTime = undefined;
+    baseTimeForProgress = undefined;
+  } else if (drawStatus === 3) {
+    statusText = "已开奖";
+    issueNote = "开奖号码已公布";
+    countdownLabel = "开奖号码";
+    activeEventTime = undefined;
+    baseTimeForProgress = undefined;
+  } else if (drawStatus === 2) {
+    statusText = "断言被质疑";
+    issueNote = "等待重新提交断言";
+    countdownLabel = "状态";
+    activeEventTime = undefined;
+    baseTimeForProgress = undefined;
   } else if (drawStatus === 1) {
     statusText = "断言确认中";
     issueNote = "断言挑战期中";
     countdownLabel = "挑战期截止";
     activeEventTime = roundData?.config?.drawDataDeadline ? Number(roundData.config.drawDataDeadline) : salesCloseTime;
-  } else if (drawStatus === 3) {
-    statusText = "已开奖";
-    issueNote = "开奖号码已公布";
+    baseTimeForProgress = salesCloseTime;
+  } else if (isSalesClosedRaw) {
+    statusText = "封盘待开奖";
+    issueNote = "等待预言机提交开奖断言";
     countdownLabel = "状态";
     activeEventTime = undefined;
+    baseTimeForProgress = undefined;
+  } else if (salesCloseTime && now >= salesCloseTime) {
+    statusText = "封盘操作已逾期";
+    issueNote = "等待链上执行封盘操作";
+    countdownLabel = "等待确认";
+    activeEventTime = undefined;
+    baseTimeForProgress = undefined;
   } else if (isUpcoming) {
-    // 👈 核心状态 1：即将开售
     statusText = "即将开售";
     issueNote = "即将开售";
     countdownLabel = "开售倒计时";
-    activeEventTime = salesOpenTime; // 倒计时右边严格对应开售时间
-  } else if (isSalesClosedRaw || isEnded) {
-    // 👈 核心状态 2：已封盘
-    statusText = "已封盘";
-    issueNote = "销售已截止，待开奖";
-    countdownLabel = "封盘倒计时";
-    activeEventTime = salesCloseTime; // 倒计时右边严格对应封盘时间
+    activeEventTime = salesOpenTime;
+    baseTimeForProgress = undefined;
   } else {
-    // 👈 核心状态 3：投注中
     statusText = "投注中";
     issueNote = "投注进行中";
     countdownLabel = "封盘倒计时";
-    activeEventTime = salesCloseTime; // 倒计时右边严格对应封盘时间
+    activeEventTime = salesCloseTime;
+    baseTimeForProgress = salesOpenTime;
   }
+
+  const { formatted: countdownStr, progressPercent, isEnded } = useCountdown(activeEventTime, baseTimeForProgress);
 
   // 倒计时右侧对应的具体年月日时分秒 UTC
   const countdownNote = formatUtcDateTime(activeEventTime);
@@ -291,12 +305,13 @@ export function LotteryWorldView({ partnerCode }: LotteryWorldViewProps = {}) {
                 issueNote={issueNote}
                 ticketPrice={`${formattedTicketPrice} WUSD`}
                 prizePool={totalSalesStr}
-                countdown={countdownStr}
+                countdown={activeEventTime === undefined ? "--:--:--" : countdownStr}
                 countdownLabel={countdownLabel}
                 countdownNote={countdownNote}
                 statusText={statusText}
                 progressPercent={progressPercent}
                 currency="WUSD"
+                winningNumber={winningNumberStr}
               />
 
               {/* 2. Betting Zone: Mobile stacked, PC side-by-side equal height */}

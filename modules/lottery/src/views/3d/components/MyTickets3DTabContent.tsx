@@ -2,21 +2,21 @@
 
 import React from "react";
 import { LotteryHistoryView } from "../../../components/history/LotteryHistoryView";
-import { useWorldLottoHistory } from "../../../hooks/useWorldLottoHistory";
+import { useLottery3DHistory } from "../../../hooks/useLottery3DHistory";
 import { toast } from "sonner";
 import { BetOrderRecord } from "../../../components/history/types";
 import { useWeb3Action } from "@wf-platform/hooks";
-import { WORLD_LOTTO_ADDRESSES } from "../../../config/addresses";
-import { lotto7UmaRoundsAbi, lotto7UmaSettlementAbi } from "../../../config/abis";
+import { LOTTO_3D_ADDRESSES } from "../../../config/addresses";
+import { polygon } from "viem/chains";
+import { wusdLotto3dGameV4Abi } from "../../../config/abis";
 import { useQueryClient } from "@tanstack/react-query";
 import { useZeroDev } from "@wf-platform/web3-core";
-import { polygon } from "viem/chains";
 
-export function MyTicketsTabContent() {
+export function MyTickets3DTabContent() {
   const [page, setPage] = React.useState(1);
   const pageSize = 10;
-  
-  const { data: queryData, isLoading } = useWorldLottoHistory(page, pageSize);
+
+  const { data: queryData, isFetching } = useLottery3DHistory(page, pageSize);
   const records = queryData?.data || [];
   const total = queryData?.total || 0;
 
@@ -46,14 +46,14 @@ export function MyTicketsTabContent() {
     }
 
     const isWin = Boolean(r.isWon || displayStatus === "中奖 · 待领取" || displayStatus === "中奖 · 待结算");
-
+    
     return {
       id: r.id,
       issue: r.roundId,
       ticketId: r.ticketId,
       numbers: r.number,
       winningNumber: r.roundWinningNumber,
-      multiplier: r.multiplier ?? 1,
+      multiplier: 1, // 3D doesn't have multipliers like UMA
       amount: r.netPnL === "0 USD" ? "未知" : Math.abs(parseFloat(r.netPnL)) + " WUSD", 
       time: new Date(r.blockTimestamp * 1000).toLocaleString(),
       status: displayStatus,
@@ -76,8 +76,8 @@ export function MyTicketsTabContent() {
       const txHash = await execute(async () => {
         if (!kernelClient) throw new Error("Wallet not connected");
         return await kernelClient.writeContract({
-          address: WORLD_LOTTO_ADDRESSES[polygon.id].settlement,
-          abi: lotto7UmaSettlementAbi,
+          address: LOTTO_3D_ADDRESSES[polygon.id].game,
+          abi: wusdLotto3dGameV4Abi,
           functionName: "claim",
           args: [BigInt(record.ticketId)],
         });
@@ -85,7 +85,7 @@ export function MyTicketsTabContent() {
       if (!txHash) return;
 
       toast.success("领奖成功");
-      queryClient.setQueryData(["lottoUmaHistory", aaAddress, page, pageSize], (oldData: any) => {
+      queryClient.setQueryData(["lotto3dHistory", aaAddress, page, pageSize], (oldData: any) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
@@ -105,8 +105,8 @@ export function MyTicketsTabContent() {
       const txHash = await execute(async () => {
         if (!kernelClient) throw new Error("Wallet not connected");
         return await kernelClient.writeContract({
-          address: WORLD_LOTTO_ADDRESSES[polygon.id].rounds,
-          abi: lotto7UmaRoundsAbi,
+          address: LOTTO_3D_ADDRESSES[polygon.id].game,
+          abi: wusdLotto3dGameV4Abi,
           functionName: "refundTicket",
           args: [BigInt(record.ticketId)],
         });
@@ -114,7 +114,7 @@ export function MyTicketsTabContent() {
       if (!txHash) return;
 
       toast.success("退款成功");
-      queryClient.setQueryData(["lottoUmaHistory", aaAddress, page, pageSize], (oldData: any) => {
+      queryClient.setQueryData(["lotto3dHistory", aaAddress, page, pageSize], (oldData: any) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
@@ -129,10 +129,10 @@ export function MyTicketsTabContent() {
   return (
     <div className="w-full">
       <LotteryHistoryView 
-        ballCount={7} 
-        gameType="world" 
+        ballCount={3} 
+        gameType="3d" 
         currency="WUSD" 
-        currentIssue="2450" 
+        currentIssue="-" 
         orders={orders}
         page={page}
         pageSize={pageSize}
@@ -140,7 +140,7 @@ export function MyTicketsTabContent() {
         onPageChange={setPage}
         onClaim={handleClaim}
         onRefund={handleRefund}
-        loading={isLoading}
+        loading={isFetching}
       />
     </div>
   );
