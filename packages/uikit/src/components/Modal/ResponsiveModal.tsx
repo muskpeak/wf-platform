@@ -16,7 +16,7 @@ export interface ResponsiveModalProps {
   className?: string;
   contentClassName?: string;
   showClose?: boolean;
-  /** Breakpoint below which to display as a Bottom Sheet. Default 1023px (lg) */
+  /** Breakpoint below which to display as a Bottom Sheet. Default 1200px */
   mobileBreakpoint?: string;
 }
 
@@ -30,7 +30,7 @@ export function ResponsiveModal({
   className,
   contentClassName,
   showClose = true,
-  mobileBreakpoint = "(max-width: 1023px)",
+  mobileBreakpoint = "(max-width: 1200px)",
 }: ResponsiveModalProps) {
   const [mounted, setMounted] = React.useState(false);
   const isMobile = useMediaQuery(mobileBreakpoint);

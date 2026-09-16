@@ -20,6 +20,7 @@ export interface NavbarProps {
   // Render Props / Slots
   LinkComponent?: any; // e.g. Next.js Link
   rightControlsSlot?: React.ReactNode; // e.g. Theme, Lang, ConnectButton
+  onNavItemClick?: (item: NavItem, e: React.MouseEvent) => boolean | void;
 }
 
 export function Navbar({
@@ -29,6 +30,7 @@ export function Navbar({
   isLoggedIn,
   LinkComponent = "a",
   rightControlsSlot,
+  onNavItemClick,
 }: NavbarProps) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
@@ -55,6 +57,14 @@ export function Navbar({
                 <LinkComponent 
                   key={nav.id} 
                   href={nav.path} 
+                  onClick={(e: React.MouseEvent) => {
+                    if (onNavItemClick) {
+                      const res = onNavItemClick(nav, e);
+                      if (res === false) {
+                        e.preventDefault();
+                      }
+                    }
+                  }}
                   className={cn(
                     "px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap",
                     isActive 

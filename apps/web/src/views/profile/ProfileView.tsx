@@ -9,6 +9,8 @@ import { polygon } from "viem/chains";
 
 import { USDC_ADDRESS } from "@wf-platform/chain-config";
 
+import { usePrivy } from "@privy-io/react-auth";
+
 import { UserInfoCard } from "./components/UserInfoCard";
 import { TotalAssetCard } from "./components/TotalAssetCard";
 import { AccountActionButtons } from "./components/AccountActionButtons";
@@ -17,8 +19,7 @@ import { QuickAccessGrid } from "./components/QuickAccessGrid";
 import { ProfileTabs } from "./components/ProfileTabs";
 import { AssetDetailTable } from "./components/AssetDetailTable";
 import { TransferModal } from "./components/TransferModal";
-import { DepositModal } from "./components/DepositModal";
-import { WithdrawModal } from "./components/WithdrawModal";
+import { VaultDepositModal, VaultWithdrawModal } from "../vault";
 
 export function ProfileView() {
   const [activeTab, setActiveTab] = useState("assets");
@@ -26,7 +27,11 @@ export function ProfileView() {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
+  const { authenticated, ready, login } = usePrivy();
   const { aaAddress, kernelClient } = useZeroDev();
+
+  // 严格检查连接状态：Privy 就绪且已登录认证，且已派生出 aaAddress
+  const isConnected = Boolean(ready && authenticated && aaAddress);
 
   const publicClient = useMemo(
     () =>
@@ -38,7 +43,7 @@ export function ProfileView() {
   );
 
   // 1. WF 平台双账户余额：资金账户(真实 Polygon USDC) + 系统内临时测试币(mUSDC)
-  const { realUsdc, mUsdc, refetchAll } = usePlatformBalances(aaAddress ?? null, {
+  const { realUsdc, mUsdc, refetchAll } = usePlatformBalances(isConnected ? aaAddress : null, {
     usdc: USDC_ADDRESS[polygon.id],
     mUsdc: FUNDING_ADDRESSES[polygon.id].mUSDC,
   });
@@ -51,16 +56,50 @@ export function ProfileView() {
     isDepositing,
     withdraw,
     isWithdrawing,
-  } = useLotteryFunding(aaAddress ?? null, kernelClient, publicClient);
+  } = useLotteryFunding(isConnected ? aaAddress : null, kernelClient, publicClient);
 
   // 3. 计算总资产：资金账户(真实 USDC) + 彩票账户(WUSD)；临时 mUSDC 严禁计入总资产
   const realUsdcAmount = parseFloat(realUsdc.formatted || "0");
   const lottoAmount = parseFloat(lotteryWusdBalance.formatted || "0");
   const totalAmount = realUsdcAmount + lottoAmount;
-  const formattedTotal = totalAmount.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formattedTotal = isConnected
+    ? totalAmount.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : "--";
+
+  const handleOpenDeposit = () => {
+    if (!isConnected) {
+      login();
+      return;
+    }
+    setIsDepositOpen(true);
+  };
+
+  const handleOpenWithdraw = () => {
+    if (!isConnected) {
+      login();
+      return;
+    }
+    setIsWithdrawOpen(true);
+  };
+
+  const handleOpenTransfer = () => {
+    if (!isConnected) {
+      login();
+      return;
+    }
+    setIsTransferOpen(true);
+  };
+
+  const handleViewRecords = () => {
+    if (!isConnected) {
+      login();
+      return;
+    }
+    setActiveTab("records");
+  };
 
   const handleDepositTransfer = async (amount: number) => {
     await deposit(amount);
@@ -91,23 +130,29 @@ export function ProfileView() {
 
         {/* 右侧模块：总资产卡片 (PC端宽屏展示，移动端纵向堆叠) */}
         <div className="profile-right-col">
-          <TotalAssetCard totalBalance={formattedTotal} />
+          <TotalAssetCard
+            totalBalance={formattedTotal}
+            onOpenDeposit={handleOpenDeposit}
+            onOpenWithdraw={handleOpenWithdraw}
+            onOpenTransfer={handleOpenTransfer}
+          />
 
-          {/* 桌面端隐藏，移动端展示：三大核心操作按钮 */}
+          {/* 移动端专属：三大核心操作按钮 (PC端已优雅集成在总资产卡片内，H5完全保持原样) */}
           <div className="block lg:hidden">
             <AccountActionButtons
-              onOpenTransfer={() => setIsTransferOpen(true)}
-              onOpenDeposit={() => setIsDepositOpen(true)}
-              onOpenWithdraw={() => setIsWithdrawOpen(true)}
+              onOpenTransfer={handleOpenTransfer}
+              onOpenDeposit={handleOpenDeposit}
+              onOpenWithdraw={handleOpenWithdraw}
             />
           </div>
 
           {/* 双账户卡片：资金账户(真实USDC) & 彩票账户(金库WUSD + 临时mUSDC) */}
           <SubAccountsCard
-            wfBalance={realUsdc.formatted}
-            lotteryBalance={lotteryWusdBalance.formatted}
-            musdcBalance={mUsdc.formatted}
-            onOpenTransfer={() => setIsTransferOpen(true)}
+            wfBalance={isConnected ? (realUsdc.formatted || "0.00") : "--"}
+            lotteryBalance={isConnected ? (lotteryWusdBalance.formatted || "0.00") : "--"}
+            musdcBalance={isConnected ? (mUsdc.formatted || "0.00") : "--"}
+            onOpenTransfer={handleOpenTransfer}
+            onViewRecords={handleViewRecords}
           />
         </div>
       </div>
@@ -137,16 +182,17 @@ export function ProfileView() {
       />
 
       {/* 跨链充值弹窗 */}
-      <DepositModal
+      <VaultDepositModal
         open={isDepositOpen}
-        onClose={() => setIsDepositOpen(false)}
+        onOpenChange={setIsDepositOpen}
         onSuccess={() => setIsDepositOpen(false)}
       />
 
       {/* 跨链提现弹窗 */}
-      <WithdrawModal
+      <VaultWithdrawModal
         open={isWithdrawOpen}
-        onClose={() => setIsWithdrawOpen(false)}
+        onOpenChange={setIsWithdrawOpen}
+        balance={realUsdc.formatted}
       />
 
       <style jsx>{`

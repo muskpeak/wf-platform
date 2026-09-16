@@ -65,7 +65,7 @@ export function LotteryWorldView({ partnerCode }: LotteryWorldViewProps = {}) {
     abis: [unifiedLedgerV4Abi, lotto7UmaRoundsAbi],
     successMessage: "投注交易已成功提交并确认！",
   });
-  const { aaAddress } = useZeroDev();
+  const { aaAddress, authenticated, login } = useZeroDev();
 
   // 格式化价格 (动态从合约获取，6位精度)
   const formattedTicketPrice = ticketPrice ? formatUnits(ticketPrice as bigint, 6) : "1";
@@ -186,6 +186,12 @@ export function LotteryWorldView({ partnerCode }: LotteryWorldViewProps = {}) {
   }, [latestRoundId, roundData, ticketPrice, previousRoundId, previousRoundData, maxBatchSize, statusText, countdownLabel, countdownNote]);
 
   const handlePurchase = async () => {
+    // 未登录时操作，主动拉起登录弹窗引导登录
+    if (!authenticated || !aaAddress) {
+      login();
+      return;
+    }
+
     if (latestRoundId === undefined) {
       toast.error("当前期次信息未加载，请稍候");
       return;
@@ -335,6 +341,8 @@ export function LotteryWorldView({ partnerCode }: LotteryWorldViewProps = {}) {
                   clearBets={clearBets}
                   updateBetMultiplier={updateBetMultiplier}
                   onConfirm={handlePurchase}
+                  onLogin={login}
+                  isLoggedIn={Boolean(authenticated && aaAddress)}
                   isLoading={isWriting || isConfirming || isActionPending}
                   isSalesClosed={isSalesClosedRaw || isEnded}
                   isEnded={isEnded}

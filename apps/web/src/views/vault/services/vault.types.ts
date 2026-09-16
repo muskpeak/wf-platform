@@ -1,7 +1,4 @@
-/**
- * Vault 模块类型定义
- * 临时对接 dat-dapp 后端，待 wf 自有接口上线后迁移
- */
+// 直接从 dat-dapp/Vault.types.ts 搬运，保持完整类型定义
 
 export type QuoteStep = {
   kind?: string;
@@ -22,9 +19,16 @@ export type QuoteStep = {
   }>;
 };
 
+export type VaultFee = {
+  amount?: string | number;
+  amountUsd?: string | number;
+  amountFormatted?: string;
+  currency?: { symbol?: string; name?: string };
+};
+
 export type QuoteData = {
   steps?: QuoteStep[];
-  fees?: Record<string, unknown>;
+  fees?: Record<string, VaultFee> | VaultFee[];
   details?: {
     totalImpact?: { percent?: number };
     slippageTolerance?: { destination?: { percent?: number } };

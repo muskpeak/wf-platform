@@ -49,12 +49,12 @@ export function UserMenuContent({
     },
     {
       id: "deposit",
-      title: "充值 Deposit",
+      title: "充值",
       icon: "deposit",
     },
     {
       id: "withdraw",
-      title: "提现 Withdraw",
+      title: "提现",
       icon: "withdraw",
     },
   ];
@@ -203,7 +203,7 @@ export function UserMenuModal({
   onNavigate,
   onAction,
 }: UserMenuModalProps) {
-  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isMobile = useMediaQuery("(max-width: 1200px)");
 
   // 在 PC 大屏 (>=1024px) 上不渲染任何 Mobile 模态遮罩
   if (!isMobile) return null;

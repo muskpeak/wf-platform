@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { use3DLottoStore } from "./store/use3DLottoStore";
 import { LottoTabs } from "../../components/LottoTabs";
 import { MyTickets3DTabContent } from "./components/MyTickets3DTabContent";
+import { Rules3DTabContent } from "./components/Rules3DTabContent";
 import { IssueStatusStrip } from "../../components/common/IssueStatusStrip";
 import { NumberPickerCard, LOTTO_3D_SLOTS } from "../../components/common/NumberPickerCard";
 import { CurrentBetSummaryCard } from "../../components/common/CurrentBetSummaryCard";
@@ -69,7 +70,7 @@ export function Lottery3DView({ partnerCode }: Lottery3DViewProps = {}) {
     abis: [unifiedLedgerV4Abi, lotto3dGameAbi],
     successMessage: "3D 彩票投注交易已成功提交并确认！",
   });
-  const { aaAddress } = useZeroDev();
+  const { aaAddress, authenticated, login } = useZeroDev();
 
   // 控制台中文日志输出，供开发者清晰核对链上真实返回的数据
   useEffect(() => {
@@ -94,6 +95,12 @@ export function Lottery3DView({ partnerCode }: Lottery3DViewProps = {}) {
   }, [latestRoundId, roundData, ticketPrice, maxBatchSize, maxTicketsPerAddress, alreadyBoughtCount, statusText, countdownLabel, countdownNote, prizePoolStr, totalSalesStr]);
 
   const handlePurchase = async () => {
+    // 用户未登录时操作，主动弹窗引导登录
+    if (!authenticated || !aaAddress) {
+      login();
+      return;
+    }
+
     if (latestRoundId === undefined) {
       toast.error("当前期次信息未加载，请稍候");
       return;
@@ -219,6 +226,8 @@ export function Lottery3DView({ partnerCode }: Lottery3DViewProps = {}) {
                   clearBets={clearBets}
                   updateBetMultiplier={updateBetMultiplier}
                   onConfirm={handlePurchase}
+                  onLogin={login}
+                  isLoggedIn={Boolean(authenticated && aaAddress)}
                   isLoading={isPurchasing}
                   isSalesClosed={isSalesClosed}
                   isEnded={isEnded}
@@ -253,9 +262,7 @@ export function Lottery3DView({ partnerCode }: Lottery3DViewProps = {}) {
               transition={{ duration: 0.18 }}
               className="flex flex-col gap-4"
             >
-              <div className="flex items-center justify-center min-h-[200px] text-[#9aa6b2] text-[14px]">
-                奖金规则（待接入）
-              </div>
+              <Rules3DTabContent />
             </motion.div>
           )}
         </AnimatePresence>
@@ -265,4 +272,3 @@ export function Lottery3DView({ partnerCode }: Lottery3DViewProps = {}) {
 }
 
 export { Lottery3DView as Lottery3DPage };
-

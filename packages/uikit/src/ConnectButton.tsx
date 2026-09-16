@@ -45,12 +45,86 @@ export function ConnectButton({ zeroDevProjectId, balance = 0, onNavigate, onAct
   const { aaAddress, isInitializing: isZeroDevInitializing } = useZeroDev(zeroDevProjectId)
 
   // Real Logout Handler
-  const handleLogout = React.useCallback(() => {
+  const handleLogout = React.useCallback(async () => {
     prevAddressRef.current = undefined
-    disconnect()
-    privyLogout()
+    setMenuOpen(false)
+
+    // 1. 尝试调用 Privy 登出（若 session 已在服务端失效，捕获 400 异常不阻断登出）
+    try {
+      if (authenticated) {
+        await privyLogout()
+      }
+    } catch (e) {
+      console.warn('[ConnectButton] Privy session logout caught:', e)
+    }
+
+    // 2. 断开 Wagmi 外部连接
+    try {
+      disconnect()
+    } catch (e) {
+      console.warn('[ConnectButton] Wagmi disconnect error:', e)
+    }
+
+    // 3. 断开所有已连接的外部钱包
+    try {
+      for (const w of wallets) {
+        if (typeof w.disconnect === 'function') {
+          try {
+            await (w.disconnect() as unknown as Promise<unknown>)
+          } catch {
+            // ignore
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[ConnectButton] Wallets disconnect error:', e)
+    }
+
+    // 4. 清空全局 Web2 鉴权 Store
     globalLogout()
-  }, [disconnect, privyLogout, globalLogout])
+
+    // 5. 强制清除所有本地缓存（解决 Privy 400 导致失效 session 残留在 Storage 的死锁）
+    if (typeof window !== 'undefined') {
+      try {
+        Object.keys(localStorage).forEach((key) => {
+          if (
+            key.startsWith('privy:') ||
+            key.startsWith('privy_') ||
+            key.toLowerCase().includes('privy')
+          ) {
+            localStorage.removeItem(key)
+          }
+        })
+        Object.keys(sessionStorage).forEach((key) => {
+          if (
+            key.startsWith('privy:') ||
+            key.startsWith('privy_') ||
+            key.toLowerCase().includes('privy')
+          ) {
+            sessionStorage.removeItem(key)
+          }
+        })
+
+        localStorage.removeItem('wf-auth-storage')
+        localStorage.removeItem('wagmi.store')
+        localStorage.removeItem('wagmi.wallet')
+        localStorage.removeItem('wagmi.connected')
+        localStorage.removeItem('wagmi.recentConnectorId')
+
+        document.cookie.split(';').forEach((c) => {
+          const name = c.split('=')[0].trim()
+          if (name.toLowerCase().includes('privy')) {
+            document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`
+          }
+        })
+      } catch (e) {
+        console.warn('[ConnectButton] Clear storage error:', e)
+      }
+
+      // 6. 刷新页面彻底重置所有 React Context 与状态缓存
+      window.location.reload()
+    }
+  }, [authenticated, disconnect, wallets, privyLogout, globalLogout])
 
   // 1. Active Wallet Disconnect Listener
   React.useEffect(() => {
@@ -118,9 +192,11 @@ export function ConnectButton({ zeroDevProjectId, balance = 0, onNavigate, onAct
     )
   }
 
-  // 已认证且有 AA 地址,或者有钱包且有 AA 地址 (兼容 Privy session 过期但钱包数据还在的情况)
-  if ((authenticated || wallets.length > 0) && aaAddress) {
-    const displayAddress = profile?.address || aaAddress
+  // 必须是已认证且具备 AA 地址（或全局存在 token 且有 AA 地址）才视为登录成功
+  const isLoggedIn = Boolean(aaAddress && (authenticated || token))
+
+  if (isLoggedIn) {
+    const displayAddress = (profile?.address || aaAddress) ?? undefined
 
     return (
       <>
@@ -141,7 +217,13 @@ export function ConnectButton({ zeroDevProjectId, balance = 0, onNavigate, onAct
 
             <div className="hidden lg:block absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 origin-top-right">
               <div className="w-[230px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[16px] p-4 shadow-xl">
-                <UserMenuContent address={displayAddress} onLogout={handleLogout} onNavigate={onNavigate} onAction={onAction} />
+                <UserMenuContent
+                  address={displayAddress}
+                  onLogout={handleLogout}
+                  onClose={() => setMenuOpen(false)}
+                  onNavigate={onNavigate}
+                  onAction={onAction}
+                />
               </div>
             </div>
           </div>

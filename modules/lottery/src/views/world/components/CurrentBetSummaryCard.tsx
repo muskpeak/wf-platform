@@ -4,9 +4,12 @@ import React from "react";
 import { Trash2, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { useWorldLottoStore } from "../store/useWorldLottoStore";
+import { useZeroDev } from "@wf-platform/web3-core";
 
 export function CurrentBetSummaryCard() {
   const { bets, removeBet, clearBets, updateBetMultiplier } = useWorldLottoStore();
+  const { authenticated, ready, login, aaAddress } = useZeroDev();
+  const isLoggedIn = Boolean(ready && authenticated && aaAddress);
 
   // Price calculations: each bet costs (multiplier * 1 USDT)
   const totalTickets = bets.length;
@@ -137,16 +140,20 @@ export function CurrentBetSummaryCard() {
           </div>
         </div>
 
-        {/* 4. 确认投注大按钮 */}
+        {/* 4. 确认投注大按钮 (未登录优先级最高，显示登录) */}
         <button
           type="button"
-          disabled={bets.length === 0}
+          disabled={isLoggedIn ? bets.length === 0 : false}
           onClick={() => {
+            if (!isLoggedIn) {
+              login();
+              return;
+            }
             toast.success(`确认投注成功！共 ${totalTickets} 注，总计支付 ${totalPay.toFixed(2)} USDT`);
           }}
           className="w-full bg-[#008cff] hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold h-[48px] sm:h-[52px] rounded-full text-[16px] shadow-sm shadow-blue-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center"
         >
-          确认投注
+          {!isLoggedIn ? "登录" : "确认投注"}
         </button>
       </div>
     </div>

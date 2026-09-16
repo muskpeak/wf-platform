@@ -21,8 +21,12 @@ export function UserInfoCard() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str.trim());
   };
 
+  // 仅当用户处于登录状态时才解析有效地址、邮箱与名称
+  const isLoggedIn = Boolean(authenticated);
+
   // 严密获取用户真实有效邮箱 (仅支持 Google OAuth 或有效 Email 登录)
   const realEmail = React.useMemo(() => {
+    if (!isLoggedIn) return null;
     if (isValidEmail(user?.google?.email)) return user!.google!.email;
     if (isValidEmail(user?.email?.address)) return user!.email!.address;
     if (isValidEmail(profile?.email)) return profile!.email;
@@ -39,33 +43,33 @@ export function UserInfoCard() {
       if (emailAcc?.address) return emailAcc.address;
     }
     return null;
-  }, [user, profile]);
+  }, [isLoggedIn, user, profile]);
 
   // 外部 EOA 钱包地址 (优先读取 store 里的 profile.address，即已连接的外部 EOA 地址)
   const externalWallet = user?.linkedAccounts?.find(
     (a: any) => a.type === "wallet" && a.walletClientType !== "privy"
   ) as any;
-  const externalEoa =
-    profile?.address ||
-    externalWallet?.address ||
-    user?.wallet?.address ||
-    (user?.linkedAccounts?.find((a: any) => a.type === "wallet") as any)?.address;
+  const externalEoa = isLoggedIn
+    ? (profile?.address ||
+       externalWallet?.address ||
+       user?.wallet?.address ||
+       (user?.linkedAccounts?.find((a: any) => a.type === "wallet") as any)?.address)
+    : null;
 
-  // 展示地址：优先展示外部 EOA 地址
-  const activeAddress = externalEoa || aaAddress;
+  const activeAddress = isLoggedIn ? (externalEoa || aaAddress) : null;
   const displayAddress = activeAddress
     ? `${activeAddress.slice(0, 6)}...${activeAddress.slice(-4)}`
     : "--";
 
   // 大字展示名称：
-  // 1. 如果有真实的 Google / Email 邮箱，展示真实邮箱
-  // 2. 如果是 Web3 钱包登录（无邮箱），直接展示 Web3 钱包地址！
-  // 3. 如果未登录，展示“未登录 (点击登录)”
-  const displayName = realEmail
+  // 1. 如果未登录，展示“未登录 (点击登录)”
+  // 2. 如果有真实的 Google / Email 邮箱，展示真实邮箱
+  // 3. 如果是 Web3 钱包登录（无邮箱），展示地址
+  const displayName = !isLoggedIn
+    ? "未登录 (点击登录)"
+    : realEmail
     ? realEmail
-    : activeAddress || authenticated
-    ? displayAddress
-    : "未登录 (点击登录)";
+    : displayAddress;
 
   const handleCopyAddress = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -267,7 +271,7 @@ export function UserInfoCard() {
             {/* 连接状态标签 */}
             <div
               style={{
-                backgroundColor: (authenticated || activeAddress)
+                backgroundColor: (isLoggedIn && activeAddress)
                   ? "rgba(34, 197, 94, 0.2)"
                   : "rgba(156, 163, 175, 0.2)",
                 borderRadius: "9999px",
@@ -276,20 +280,20 @@ export function UserInfoCard() {
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                cursor: (!authenticated && !activeAddress) ? "pointer" : "default",
+                cursor: (!isLoggedIn || !activeAddress) ? "pointer" : "default",
               }}
-              onClick={(!authenticated && !activeAddress) ? () => login() : undefined}
+              onClick={(!isLoggedIn || !activeAddress) ? () => login() : undefined}
             >
               <span
                 style={{
                   fontSize: "10px",
                   fontWeight: 500,
-                  color: (authenticated || activeAddress) ? "#00a63e" : "#6B7280",
+                  color: (isLoggedIn && activeAddress) ? "#00a63e" : "#6B7280",
                   lineHeight: "16px",
                   whiteSpace: "nowrap",
                 }}
               >
-                {(authenticated || activeAddress) ? "Polygon 已连接" : "未连接"}
+                {(isLoggedIn && activeAddress) ? "Polygon 已连接" : "未连接"}
               </span>
             </div>
           </div>

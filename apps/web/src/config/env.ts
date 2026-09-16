@@ -13,7 +13,7 @@ const serverEnvSchema = z.object({
   // Web3 Infrastructure
   CHAIN_ID: z.coerce.number().default(137),
   CHAIN_RPC_URL: z.string().url().default("https://polygon-rpc.com"),
-  USDC_ADDRESS: z.string().startsWith("0x", "Must be a valid EVM address").default("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"),
+  USDC_ADDRESS: z.string().startsWith("0x", "Must be a valid EVM address").default("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"),
   PRIVY_APP_ID: z.string().min(1, "PRIVY_APP_ID is required"),
   ZERODEV_PROJECT_ID: z.string().min(1, "ZERODEV_PROJECT_ID is required"),
   ZERODEV_RPC_HOST: z.string().url().default("https://rpc.zerodev.app/api/v3"),
@@ -22,8 +22,8 @@ const serverEnvSchema = z.object({
 
   // Third-Party Services & Partner Config
   LOTTERY_API_URL: z.string().url().default("https://wf.vip/backend/api/v1"),
-  // 临时借用 dat-dapp 后端的充值/提现配置接口，待 wf 自有接口上线后替换
-  DAT_DAPP_API_BASE: z.string().url().default("https://api.dat.finance"),
+  // 临时借用 wf pre-prod 后端的充值/提现配置接口，待正式接口上线后替换
+  DAT_DAPP_API_BASE: z.string().url().default("https://pre.wfmail.org"),
   // 跨链 Relay API（Relay.link）
   RELAY_API_URL: z.string().url().default("https://api.relay.link"),
   PARTNER_CODE: z

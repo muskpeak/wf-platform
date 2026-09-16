@@ -20,7 +20,7 @@ export function MyTicketsTabContent() {
   const records = queryData?.data || [];
   const total = queryData?.total || 0;
 
-  const { aaAddress, kernelClient } = useZeroDev();
+  const { aaAddress, kernelClient, authenticated, login } = useZeroDev();
   const { execute } = useWeb3Action();
   const queryClient = useQueryClient();
 
@@ -69,6 +69,10 @@ export function MyTicketsTabContent() {
   });
 
   const handleClaim = async (recordId: string) => {
+    if (!authenticated || !kernelClient) {
+      login();
+      return;
+    }
     const record = records.find((r: any) => r.id === recordId);
     if (!record || !record.ticketId) return;
 
@@ -98,6 +102,10 @@ export function MyTicketsTabContent() {
   };
 
   const handleRefund = async (recordId: string) => {
+    if (!authenticated || !kernelClient) {
+      login();
+      return;
+    }
     const record = records.find((r: any) => r.id === recordId);
     if (!record || !record.ticketId) return;
 

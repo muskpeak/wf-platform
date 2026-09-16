@@ -12,8 +12,8 @@ export interface SubAccountsCardProps {
 }
 
 export function SubAccountsCard({
-  wfBalance = "0.00",
-  lotteryBalance = "0.00",
+  wfBalance = "--",
+  lotteryBalance = "--",
   musdcBalance,
   onOpenTransfer,
   onViewRecords,

@@ -1,23 +1,26 @@
-"use client";
+'use client'
 
-import React from "react";
-import { Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { BetItem } from "../../views/world/store/useWorldLottoStore";
+import React from 'react'
+import { Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { BetItem } from '../../views/world/store/useWorldLottoStore'
+import { useZeroDev } from '@wf-platform/web3-core'
 
 export interface CurrentBetSummaryCardProps {
-  bets: BetItem[];
-  removeBet: (id: string) => void;
-  clearBets: () => void;
-  updateBetMultiplier: (id: string, multiplier: number) => void;
-  onConfirm?: () => void;
-  isLoading?: boolean;
-  isSalesClosed?: boolean;
-  isEnded?: boolean;
-  isUpcoming?: boolean;
-  hideMultiplier?: boolean;
-  ticketPrice?: string | number;
-  currency?: string;
+  bets: BetItem[]
+  removeBet: (id: string) => void
+  clearBets: () => void
+  updateBetMultiplier: (id: string, multiplier: number) => void
+  onConfirm?: () => void
+  onLogin?: () => void
+  isLoggedIn?: boolean
+  isLoading?: boolean
+  isSalesClosed?: boolean
+  isEnded?: boolean
+  isUpcoming?: boolean
+  hideMultiplier?: boolean
+  ticketPrice?: string | number
+  currency?: string
 }
 
 export function CurrentBetSummaryCard({
@@ -26,36 +29,53 @@ export function CurrentBetSummaryCard({
   clearBets,
   updateBetMultiplier,
   onConfirm,
+  onLogin,
+  isLoggedIn,
   isLoading,
   isSalesClosed,
   isEnded,
   isUpcoming,
   hideMultiplier = false,
-  ticketPrice = "1",
-  currency = "WUSD",
+  ticketPrice = '1',
+  currency = 'WUSD',
 }: CurrentBetSummaryCardProps) {
-  const totalTickets = bets.length;
-  const totalMultiplier = bets.reduce((acc, b) => acc + (hideMultiplier ? 1 : (b.multiplier || 1)), 0);
-  const unitPriceNum = Number(ticketPrice) || 1;
-  const totalPay = totalMultiplier * unitPriceNum;
-  const isMarketClosed = Boolean(isSalesClosed || isEnded || isUpcoming);
+  const { authenticated, ready, login, aaAddress, isInitializing } = useZeroDev()
+  const isZeroDevLoggedIn = Boolean(ready && authenticated && aaAddress)
+  const effectiveIsLoggedIn = isLoggedIn !== undefined ? isLoggedIn : isZeroDevLoggedIn
+  const effectiveOnLogin = onLogin || login
+  // 登录状态尚未 hydrate 完，或已登录但 ZeroDev 智能账户还在派生 —— 避免按钮先闪一下"登录"文案
+  const isAuthResolving = !ready || (authenticated && (!aaAddress || isInitializing))
 
-  const handleConfirm = () => {
+  const totalTickets = bets.length
+  const totalMultiplier = bets.reduce((acc, b) => acc + (hideMultiplier ? 1 : b.multiplier || 1), 0)
+  const unitPriceNum = Number(ticketPrice) || 1
+  const totalPay = totalMultiplier * unitPriceNum
+  const isMarketClosed = Boolean(isSalesClosed || isEnded || isUpcoming)
+
+  const handleButtonClick = () => {
+    // 登录状态优先级高于任何状态
+    if (!effectiveIsLoggedIn) {
+      effectiveOnLogin()
+      return
+    }
+
     if (isUpcoming) {
-      toast.error("当前轮次尚未开售，暂无法投注");
-      return;
+      toast.error('当前轮次尚未开售，暂无法投注')
+      return
     }
     if (isSalesClosed || isEnded) {
-      toast.error("当前轮次销售已截止，无法投注");
-      return;
+      toast.error('当前轮次销售已截止，无法投注')
+      return
     }
     if (onConfirm) {
-      onConfirm();
+      onConfirm()
     } else {
-      const unitWord = hideMultiplier ? "张" : "注";
-      toast.success(`确认投注成功！共 ${totalTickets} ${unitWord}，总计支付 ${totalPay.toFixed(2)} ${currency}`);
+      const unitWord = hideMultiplier ? '张' : '注'
+      toast.success(
+        `确认投注成功！共 ${totalTickets} ${unitWord}，总计支付 ${totalPay.toFixed(2)} ${currency}`
+      )
     }
-  };
+  }
 
   return (
     <div className="bg-white rounded-[22px] sm:rounded-[26px] p-4 sm:p-5 flex flex-col justify-between gap-4 border border-[#eef3fa] shadow-xs h-full">
@@ -66,7 +86,7 @@ export function CurrentBetSummaryCard({
           <div className="flex items-baseline gap-2">
             <h3 className="text-[16px] sm:text-[18px] font-bold text-[#163300]">本次投注</h3>
             <span className="text-[12px] text-[#707070]">
-              已选 {totalTickets} {hideMultiplier ? "张" : "注"}
+              已选 {totalTickets} {hideMultiplier ? '张' : '注'}
             </span>
           </div>
           <button
@@ -85,7 +105,7 @@ export function CurrentBetSummaryCard({
         <div className="flex flex-col gap-2 flex-1 min-h-[140px]">
           <div className="flex items-center justify-between text-[13px] font-bold text-[#4b5767] px-1 shrink-0">
             <span>号码</span>
-            <span>{hideMultiplier ? "操作" : "倍率 / 操作"}</span>
+            <span>{hideMultiplier ? '操作' : '倍率 / 操作'}</span>
           </div>
 
           <div className="relative flex-1">
@@ -102,7 +122,7 @@ export function CurrentBetSummaryCard({
                   >
                     {/* 号码 */}
                     <div className="font-mono font-bold text-[18px] sm:text-[20px] tracking-[2px] text-[#163300]">
-                      {bet.numbers.join("")}
+                      {bet.numbers.join('')}
                     </div>
 
                     {/* 右侧：倍率调控 + 删除 */}
@@ -154,9 +174,9 @@ export function CurrentBetSummaryCard({
       <div className="flex flex-col gap-4 pt-3 border-t border-[#f0f2f5]">
         <div className="flex flex-col gap-2 text-[14px]">
           <div className="flex items-center justify-between text-[#64748b]">
-            <span>{hideMultiplier ? "总张数" : "总注数"}</span>
+            <span>{hideMultiplier ? '总张数' : '总注数'}</span>
             <span className="font-semibold text-[#0f172a] font-mono">
-              {totalTickets} {hideMultiplier ? "张" : "注"}
+              {totalTickets} {hideMultiplier ? '张' : '注'}
             </span>
           </div>
           {!hideMultiplier && (
@@ -177,24 +197,34 @@ export function CurrentBetSummaryCard({
         </div>
         <button
           type="button"
-          disabled={bets.length === 0 || isLoading || isMarketClosed}
-          onClick={handleConfirm}
+          disabled={
+            isAuthResolving
+              ? true
+              : effectiveIsLoggedIn
+                ? bets.length === 0 || isLoading || isMarketClosed
+                : false
+          }
+          onClick={handleButtonClick}
           className="w-full bg-[#008cff] hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold h-[48px] sm:h-[52px] rounded-full text-[16px] shadow-sm shadow-blue-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
         >
-          {isLoading ? (
+          {isAuthResolving ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : !effectiveIsLoggedIn ? (
+            '登录'
+          ) : isLoading ? (
             <span className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               正在提交...
             </span>
           ) : isUpcoming ? (
-            "即将开售"
+            '即将开售'
           ) : isSalesClosed || isEnded ? (
-            "销售已截止"
+            '销售已截止'
           ) : (
-            "确认投注"
+            '确认投注'
           )}
         </button>
       </div>
     </div>
-  );
+  )
 }

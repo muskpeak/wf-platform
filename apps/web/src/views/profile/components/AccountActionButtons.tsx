@@ -90,11 +90,11 @@ export function AccountActionButtons({
             whiteSpace: "nowrap",
           }}
         >
-          充值 Deposit
+          充值
         </span>
       </button>
 
-      {/* 按钮 2: 提现 Withdraw */}
+      {/* 按钮 2: 提现 */}
       <button
         type="button"
         onClick={() => handleAction("提现")}
@@ -144,11 +144,11 @@ export function AccountActionButtons({
             whiteSpace: "nowrap",
           }}
         >
-          提现Withdraw
+          提现
         </span>
       </button>
 
-      {/* 按钮 3: 划转 Transfer */}
+      {/* 按钮 3: 划转 */}
       <button
         type="button"
         onClick={() => handleAction("划转")}
@@ -213,7 +213,7 @@ export function AccountActionButtons({
               strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"
-            />
+              />
             <path
               d="M8 19.5L10 17.5L8 15.5"
               stroke="#303030"
@@ -233,7 +233,7 @@ export function AccountActionButtons({
             whiteSpace: "nowrap",
           }}
         >
-          划转Transfer
+          划转
         </span>
       </button>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowDownUp, X, Check, ChevronRight } from "lucide-react";
+import { ArrowDownUp, Check, ChevronRight } from "lucide-react";
 import { toast, ResponsiveModal, useMediaQuery } from "@wf-platform/uikit";
 
 export interface ThirdPartyPlatform {
@@ -41,7 +41,7 @@ export function TransferModal({
   const [selectedPlatformId, setSelectedPlatformId] = useState<"lotto" | "prediction">("lotto");
   const [isPlatformPickerOpen, setIsPlatformPickerOpen] = useState(false);
 
-  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isMobile = useMediaQuery("(max-width: 1200px)");
 
   // 业务平台列表 (预留并支持预测平台无缝切换)
   const PLATFORMS: ThirdPartyPlatform[] = [
@@ -516,8 +516,8 @@ export function TransferModal({
         onOpenChange={(open) => {
           if (!open) onClose();
         }}
-        title="资金划转 Transfer"
-        showClose={true}
+        title="资金划转"
+        showClose={false}
         contentClassName="p-4"
       >
         {isPlatformPickerOpen ? renderPlatformPicker() : renderTransferForm()}
@@ -562,22 +562,8 @@ export function TransferModal({
           }}
         >
           <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "#1C1F23", margin: 0 }}>
-            资金划转 Transfer
+            资金划转
           </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              padding: "4px",
-              cursor: "pointer",
-              color: "#6B7280",
-              display: "flex",
-            }}
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {isPlatformPickerOpen ? renderPlatformPicker() : renderTransferForm()}

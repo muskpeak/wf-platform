@@ -37,75 +37,7 @@ export function BetOrdersSection({
 }: BetOrdersSectionProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // Default mock orders matching Figma design (supports 7 digits for World, 3 digits for 3D)
-  const defaultOrders: BetOrderRecord[] = [
-    {
-      id: "1",
-      issue: "#1996",
-      ticketId: "93",
-      numbers: ballCount === 3 ? "775" : "7753920",
-      multiplier: 61,
-      amount: `100${currency}`,
-      time: "04/13 09:43",
-      status: "待开奖",
-      isWin: false,
-      prize: "0 USD",
-      netPnL: "0 USD",
-      isNetNegative: false,
-      canClaim: false,
-      winningNumber: "—",
-    },
-    {
-      id: "2",
-      issue: "#1996",
-      ticketId: "94",
-      numbers: ballCount === 3 ? "392" : "3928104",
-      multiplier: 61,
-      amount: `100${currency}`,
-      time: "04/13 09:43",
-      status: "待开奖",
-      isWin: false,
-      prize: "0 USD",
-      netPnL: "0 USD",
-      isNetNegative: false,
-      canClaim: false,
-      winningNumber: "—",
-    },
-    {
-      id: "3",
-      issue: "#1996",
-      ticketId: "95",
-      numbers: ballCount === 3 ? "390" : "3901245",
-      multiplier: 61,
-      amount: `100${currency}`,
-      time: "04/13 09:43",
-      status: "待开奖",
-      isWin: false,
-      prize: "0 USD",
-      netPnL: "0 USD",
-      isNetNegative: false,
-      canClaim: false,
-      winningNumber: "—",
-    },
-    {
-      id: "4",
-      issue: "#2032",
-      ticketId: "96",
-      numbers: ballCount === 3 ? "770" : "7709812",
-      multiplier: 61,
-      amount: `100${currency}`,
-      time: "04/13 09:43",
-      status: "已中奖",
-      isWin: true,
-      prize: "1000 USD",
-      netPnL: "900 USD",
-      isNetNegative: false,
-      canClaim: true,
-      winningNumber: ballCount === 3 ? "770" : "7709812",
-    },
-  ];
-
-  const orders = propOrders || defaultOrders;
+  const orders = propOrders;
 
   const statItems = [
     {
@@ -152,7 +84,7 @@ export function BetOrdersSection({
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* 4 Stats Header Row - 1:1 matching Figma node 1922:16173 */}
-      <div className="flex items-center justify-between w-full py-1">
+      {/* <div className="flex items-center justify-between w-full py-1">
         {statItems.map((item, idx) => (
           <React.Fragment key={idx}>
             {idx > 0 && <div className="h-[48px] sm:h-[54px] w-px bg-[#e7ebf4] shrink-0" />}
@@ -167,7 +99,7 @@ export function BetOrdersSection({
             </div>
           </React.Fragment>
         ))}
-      </div>
+      </div> */}
 
       {/* Main Table Card */}
       <div className="bg-white border border-[#e7ebf4]/70 rounded-[26px] sm:rounded-[30px] p-4 sm:p-7 shadow-xs flex flex-col gap-5">
@@ -187,14 +119,14 @@ export function BetOrdersSection({
           loading={loading}
           loadingState={<ResponsiveTableSkeleton pcColumns={6} pcRows={10} mobileRows={10} />}
           emptyState={
-            <Empty 
+            <Empty
               icon={<PackageOpen className="w-12 h-12 stroke-[1]" />}
               title="暂无下注记录"
               description="您还没有相关的下注历史，快去体验一下吧！"
             />
           }
           rowKey="id"
-            columns={[
+          columns={[
             {
               key: "issue",
               header: "期号",
@@ -300,7 +232,7 @@ export function BetOrdersSection({
                 let border = "border-slate-200";
                 let text = "text-slate-500";
                 let dot = "bg-slate-400";
-                
+
                 if (s === "中奖 · 待结算") {
                   bg = "bg-emerald-50";
                   border = "border-emerald-200";
